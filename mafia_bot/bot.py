@@ -49,10 +49,11 @@ async def events(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not effective_chat:
         logger.warning("effective_chat is None in /events")
         return
-    await _events.get_all_events()
+    eventlist = await _events.get_all_events()
+    response = "\n".join(f"{event.name}, {event.members}" for event in eventlist)
     await context.bot.send_message(
         chat_id=effective_chat.id,
-        text=message_templates.INFO)
+        text=response)
 
 if __name__ == '__main__':
     application = ApplicationBuilder().token(BOT_TOKEN).build()
