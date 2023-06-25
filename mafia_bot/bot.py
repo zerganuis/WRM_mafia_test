@@ -5,6 +5,8 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
 import message_templates
 
+import _events
+
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -18,7 +20,7 @@ if not BOT_TOKEN:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     if not effective_chat:
-        logger.warning("effective_chat is None")
+        logger.warning("effective_chat is None in /start")
         return
     await context.bot.send_message(
         chat_id=effective_chat.id,
@@ -27,7 +29,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     if not effective_chat:
-        logger.warning("effective_chat is None")
+        logger.warning("effective_chat is None in /help")
         return
     await context.bot.send_message(
         chat_id=effective_chat.id,
@@ -36,8 +38,18 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     effective_chat = update.effective_chat
     if not effective_chat:
-        logger.warning("effective_chat is None")
+        logger.warning("effective_chat is None in /info")
         return
+    await context.bot.send_message(
+        chat_id=effective_chat.id,
+        text=message_templates.INFO)
+
+async def events(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    effective_chat = update.effective_chat
+    if not effective_chat:
+        logger.warning("effective_chat is None in /events")
+        return
+    await _events.get_all_events()
     await context.bot.send_message(
         chat_id=effective_chat.id,
         text=message_templates.INFO)
@@ -53,5 +65,8 @@ if __name__ == '__main__':
 
     info_handler = CommandHandler('info', info)
     application.add_handler(info_handler)
+
+    events_handler = CommandHandler('events', events)
+    application.add_handler(events_handler)
 
     application.run_polling()
