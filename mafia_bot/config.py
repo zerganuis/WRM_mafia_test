@@ -1,8 +1,15 @@
 import os
 from pathlib import Path
 
-SQLITE_DB_FILE = Path(__file__).parent.joinpath('db.sqlite3')
+from dotenv import load_dotenv
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-if not BOT_TOKEN:
-    exit("Добавь токен бота в переменную среды TELEGRAM_BOT_TOKEN")
+load_dotenv()
+
+
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+
+BASE_DIR = Path(__file__).resolve().parent
+SQLITE_DB_FILE = BASE_DIR.joinpath('db.sqlite3')
+TEMPLATES_DIR = BASE_DIR.joinpath('templates')
+
+DATE_FORMAT = "%d.%m.%Y"
