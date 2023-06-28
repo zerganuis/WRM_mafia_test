@@ -9,7 +9,8 @@ from telegram import Update
 from telegram.ext import (
     ApplicationBuilder,
     ContextTypes,
-    CommandHandler
+    CommandHandler,
+    CallbackQueryHandler
 )
 
 import _events
@@ -20,11 +21,13 @@ from mafia_bot.db import close_db
 COMMAND_HANDLERS = {
     "start": handlers.start,
     "help": handlers.help_,
-    "info": handlers.info
+    "info": handlers.info,
+    "events": handlers.events
 }
 
 CALLBACK_QUERY_HANDLERS = {
-    
+    rf"^{config.EVENTS_CALLBACK_PATTERN}(\d+)$": handlers.all_events_button,
+    rf"^{config.EVENT_CALLBACK_PATTERN}(\d+)$": handlers.all_events_button
 }
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -52,8 +55,8 @@ def main():
     for command_name, command_haldler in COMMAND_HANDLERS.items():
         application.add_handler(CommandHandler(command_name, command_haldler))
 
-    events_handler = CommandHandler('events', events)
-    application.add_handler(events_handler)
+    for pattern, handler in CALLBACK_QUERY_HANDLERS.items():
+        application.add_handler(CallbackQueryHandler(handler, pattern=pattern))
 
     application.run_polling()
 
