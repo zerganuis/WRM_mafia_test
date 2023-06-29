@@ -31,6 +31,14 @@ async def fetch_all(sql: LiteralString, params: Iterable[Any] | None = None) -> 
     await cursor.close()
     return results
 
+async def fetch_one(sql: LiteralString, params: Iterable[Any] | None = None) -> dict | None:
+    cursor = await _get_cursor(sql, params)
+    row_ = await cursor.fetchone()
+    if not row_:
+        return None
+    row = _get_result_with_column_names(cursor, row_)
+    await cursor.close()
+    return row
 
 async def _get_cursor(
     sql: LiteralString, params: Iterable[Any] | None

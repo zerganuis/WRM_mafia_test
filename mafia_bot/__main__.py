@@ -13,8 +13,6 @@ from telegram.ext import (
     CallbackQueryHandler
 )
 
-import _events
-
 from mafia_bot import config, handlers
 from mafia_bot.db import close_db
 
@@ -22,27 +20,17 @@ COMMAND_HANDLERS = {
     "start": handlers.start,
     "help": handlers.help_,
     "info": handlers.info,
-    "events": handlers.events
+    "events": handlers.eventlist
 }
 
 CALLBACK_QUERY_HANDLERS = {
-    rf"^{config.EVENTS_CALLBACK_PATTERN}(\d+)$": handlers.all_events_button,
-    rf"^{config.EVENT_CALLBACK_PATTERN}(\d+)$": handlers.all_events_button
+    rf"^{config.EVENTLIST_CALLBACK_PATTERN}(\d+)$": handlers.eventlist_button,
+    rf"^{config.EVENT_CALLBACK_PATTERN}(\d+)$": handlers.event_button,
+    rf"^{config.EVENT_PROFILE_CALLBACK_PATTERN}(\d+)$": handlers.event_profile_button
 }
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-async def events(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    effective_chat = update.effective_chat
-    if not effective_chat:
-        logger.warning("effective_chat is None in /events")
-        return
-    eventlist = await _events.get_all_events()
-    response = "\n".join(f"{event.name}, {event.members}" for event in eventlist)
-    await context.bot.send_message(
-        chat_id=effective_chat.id,
-        text=response)
 
 if not config.TELEGRAM_BOT_TOKEN:
     raise ValueError(
