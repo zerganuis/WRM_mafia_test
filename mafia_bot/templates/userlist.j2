@@ -1,0 +1,4 @@
+{{ period }}:<br>
+{% for user in userlist %}
+{{ loop.index }}. {{ user.name }} ({{ user.total_score }})<br>
+{% endfor %}

@@ -20,7 +20,8 @@ COMMAND_HANDLERS = {
     "start": handlers.start,
     "help": handlers.help_,
     "info": handlers.info,
-    "events": handlers.eventlist
+    "events": handlers.eventlist,
+    "top": handlers.top
 }
 
 CALLBACK_QUERY_HANDLERS = {
