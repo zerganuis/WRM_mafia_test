@@ -13,6 +13,7 @@ class Event:
     datetime: datetime
     place: str
     host_id: int
+    description: LiteralString = ""
     userlist: Iterable | None = None
 
 Page = Iterable[Event]
@@ -34,7 +35,6 @@ def _group_events_by_pages(events: Iterable[Event]) -> Iterable[Page]:
             if event_index >= len(events):
                 break
             eventlist[-1].append(events[event_index])
-        # eventlist.append(events[i * pagelen : min(len(events) - i * pagelen, (i + 1) * pagelen)])
     return eventlist
 
 def _get_events_base_sql(select_param: LiteralString | None = None) -> LiteralString:
@@ -67,7 +67,8 @@ async def _get_event_from_db(sql: LiteralString) -> Event:
         name=event["name"],
         place=event["place"],
         datetime=event["datetime"],
-        host_id=event["host_id"]
+        host_id=event["host_id"],
+        # description=event["description"]
     )
 
 async def get_event(event_id: int) -> Event:

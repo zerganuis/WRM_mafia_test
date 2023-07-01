@@ -85,3 +85,23 @@ def _get_access_level(access_level_id: int) -> AccessLevel:
             return AccessLevel.ADMIN
         case _:
             raise ValueError(f"Unsupported access_level_id value: {access_level_id}")
+
+
+async def get_user_by_id(telegram_id: int) -> User:
+    sql = f"""{_get_users_base_sql()}
+            WHERE u.telegram_id = {telegram_id}"""
+    user = await _get_user_from_db(sql)
+    return user
+
+
+async def _get_user_from_db(sql: LiteralString) -> User:
+    user = await fetch_one(sql)
+    return User(
+            id=user["id"],
+            name=user["name"],
+            nickname=user["nickname"],
+            city=user["city"],
+            photo_link=user["photo_link"],
+            access_level=_get_access_level(user["access_level"]),
+            total_score=user.get("total_score", None)
+        )

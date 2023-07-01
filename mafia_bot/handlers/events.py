@@ -4,9 +4,10 @@ from telegram.ext import ContextTypes
 
 from mafia_bot import config
 from mafia_bot.handlers.response import send_response
-from mafia_bot.handlers.keyboards import get_eventlist_keyboard, get_event_keyboard
+from mafia_bot.handlers.keyboards import get_eventlist_keyboard, get_event_profile_keyboard
 from mafia_bot.templates import render_template
 from mafia_bot.services.event import get_eventlist, get_event
+from mafia_bot.services.user import get_user_by_id, User
 
 
 async def eventlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -21,14 +22,14 @@ async def eventlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pages_with_events[0],
             callback_prefix={
                 "eventlist": config.EVENTLIST_CALLBACK_PATTERN,
-                "event": config.EVENT_CALLBACK_PATTERN
+                "event_profile": config.EVENT_PROFILE_CALLBACK_PATTERN
             },
             page_count=len(pages_with_events),
             current_page_index=0
         )
     )
 
-async def eventlist_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def eventlist_page_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     if not query.data or not query.data.strip():
@@ -41,7 +42,7 @@ async def eventlist_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
             pages_with_events[current_page_index],
             callback_prefix={
                 "eventlist": config.EVENTLIST_CALLBACK_PATTERN,
-                "event": config.EVENT_CALLBACK_PATTERN
+                "event_profile": config.EVENT_PROFILE_CALLBACK_PATTERN
             },
             page_count=len(pages_with_events),
             current_page_index=current_page_index,
@@ -49,18 +50,23 @@ async def eventlist_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=telegram.constants.ParseMode.HTML,
     )
 
-async def event_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     current_event =  await _get_current_event(query.data)
+    host = await get_user_by_id(current_event.host_id)
     await query.edit_message_text(
         text=render_template(
             "event.j2",
-            {"name": current_event.name},
+            {
+                "event": current_event,
+                "host": host,
+                "cost": "1500 рублей"
+            },
         ),
-        reply_markup=get_event_keyboard(
+        reply_markup=get_event_profile_keyboard(
             callback_prefix={
-                "eventlist": config.EVENTLIST_CALLBACK_PATTERN,
+                "back": config.EVENTLIST_CALLBACK_PATTERN,
                 "event_profile": config.EVENT_PROFILE_CALLBACK_PATTERN
             }
         ),
@@ -69,7 +75,7 @@ async def event_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _get_current_event(query_data):
-    pattern_prefix_length = len(config.EVENT_CALLBACK_PATTERN)
+    pattern_prefix_length = len(config.EVENT_PROFILE_CALLBACK_PATTERN)
     event_id = int(query_data[pattern_prefix_length:])
     return await get_event(event_id)
 
@@ -77,21 +83,3 @@ async def _get_current_event(query_data):
 def _get_current_page_index(query_data) -> int:
     pattern_prefix_length = len(config.EVENTLIST_CALLBACK_PATTERN)
     return int(query_data[pattern_prefix_length:])
-
-
-async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    await query.edit_message_text(
-        text=render_template(
-            "event.j2",
-            {"name": "event_profile_button_result"},
-        ),
-        reply_markup=get_event_keyboard(
-            callback_prefix={
-                "eventlist": config.EVENTLIST_CALLBACK_PATTERN,
-                "event_profile": config.EVENT_PROFILE_CALLBACK_PATTERN
-            }
-        ),
-        parse_mode=telegram.constants.ParseMode.HTML,
-    )

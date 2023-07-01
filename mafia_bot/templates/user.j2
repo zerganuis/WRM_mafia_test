@@ -1,0 +1,6 @@
+Имя: {{ user.name }}<br>
+Никнейм: {{ user.nickname }}<br>
+Город: {{ user.city }}<br>
+{% if not user.total_score is none %}
+Общий счет: {{ user.total_score }}
+{% endif %}
