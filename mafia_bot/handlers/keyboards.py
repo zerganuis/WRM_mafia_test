@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+import enum
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from mafia_bot.services.event import Event
@@ -80,20 +81,20 @@ def get_user_profile_keyboard(callback_prefix: str):
     return InlineKeyboardMarkup(keyboard)
 
 
-def get_top_keyboard(
-        users_on_page: Iterable[User],
-        callback_prefix: str,
-        button_name
+def get_top_menu_keyboard(
+        periods: dict,
+        callback_prefix: str
 ) -> InlineKeyboardMarkup:
     keyboard = []
-    for user in users_on_page:
+    for key, value in periods.items():
         keyboard.append(
             [InlineKeyboardButton(
-                button_name(user),
-                callback_data=f"{callback_prefix}{user.id}"
+                f"{value}",
+                callback_data=f"{callback_prefix}{key}"
             )]
         )
     return InlineKeyboardMarkup(keyboard)
+
 
 def get_userlist_keyboard(
         users_on_page: Iterable[User],
