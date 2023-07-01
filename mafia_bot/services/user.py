@@ -24,7 +24,7 @@ class User:
     total_score: int | None = None
 
 
-async def get_top_users(period: datetime.timedelta = 0, top_limit: int = 10):
+async def get_top_users(period: datetime.timedelta = 0):
     select_param = """iif(tt.total_score is null, 0.0, tt.total_score) as total_score"""
     sql = f"""{_get_users_base_sql(select_param)}
             LEFT JOIN (
@@ -38,7 +38,7 @@ async def get_top_users(period: datetime.timedelta = 0, top_limit: int = 10):
                 group by s.user_id
             ) tt on tt.user_id = id
             order by total_score desc
-            limit {top_limit}"""
+            limit {config.TOP_PAGE_LENGTH}"""
     users = await _get_userlist_from_db(sql)
     return users
 
@@ -48,6 +48,7 @@ async def get_userlist() -> Iterable[User]:
     users = await _get_userlist_from_db(sql)
     return users
 
+
 async def get_userlist_by_event_id(event_id: int) -> Iterable[User]:
     sql = f"""{_get_users_base_sql()[:-11]}
             from statistic s
@@ -56,11 +57,13 @@ async def get_userlist_by_event_id(event_id: int) -> Iterable[User]:
     users = await _get_userlist_from_db(sql)
     return users
 
+
 async def get_user_by_id(telegram_id: int) -> User:
     sql = f"""{_get_users_base_sql()}
             WHERE u.telegram_id = {telegram_id}"""
     user = await _get_user_from_db(sql)
     return user
+
 
 def _get_users_base_sql(select_param: LiteralString | None = None) -> LiteralString:
     return f"""SELECT

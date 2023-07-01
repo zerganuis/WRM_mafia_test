@@ -115,9 +115,27 @@ def get_userlist_keyboard(
     )
     return InlineKeyboardMarkup(keyboard)
 
-def get_rules_menu_keyboard(
-        roles: dict,
+
+def get_rules_keyboard(
+        ruletypes: dict,
         callback_prefix: str
+) -> InlineKeyboardMarkup:
+    keyboard = []
+    rolelist = list(ruletypes.items())
+    rolelist.reverse()
+    for key, value in ruletypes.items():
+        keyboard.append(
+            [InlineKeyboardButton(
+                f"{value}",
+                callback_data=f"{callback_prefix}{key}"
+            )]
+        )
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_ruletype_keyboard(
+        roles: dict,
+        callback_prefix: dict[str, str]
 ) -> InlineKeyboardMarkup:
     keyboard = []
     rolelist = list(roles.items())
@@ -131,13 +149,19 @@ def get_rules_menu_keyboard(
             triplet = []; i = 0
         triplet.append(InlineKeyboardButton(
             f"{value}",
-            callback_data=f"{callback_prefix}{key}"
+            callback_data=f"{callback_prefix['role']}{key}"
         ))
         i += 1
     keyboard.append(triplet)
+    keyboard.append(
+        [InlineKeyboardButton(
+            "< Назад", callback_data=f"{callback_prefix['back']}"
+        )]
+    )
     return InlineKeyboardMarkup(keyboard)
 
-def get_rules_submenu_keyboard(callback_prefix: str):
+
+def get_role_keyboard(callback_prefix: str):
     keyboard = [
         [InlineKeyboardButton(
             "< Назад", callback_data=f"{callback_prefix}"

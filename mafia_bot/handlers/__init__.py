@@ -4,7 +4,7 @@ from .info import info
 from .events import eventlist, eventlist_page_button, event_profile_button, event_profile_button
 from .top import top, top_menu_button, top_submenu_button
 from .user import user_profile_button, userlist_button
-from .rules import rules, rules_menu_button, rules_submenu_button
+from .rules import rules, rules_button, role_button, ruletype_button
 
 __all__ = [
     "start",
@@ -20,6 +20,7 @@ __all__ = [
     "user_profile_button",
     "userlist_button",
     "rules",
-    "rules_menu_button",
-    "rules_submenu_button"
+    "rules_button",
+    "ruletype_button",
+    "role_button"
 ]

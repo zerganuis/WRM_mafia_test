@@ -32,8 +32,9 @@ CALLBACK_QUERY_HANDLERS = {
     rf"^{config.USERLIST_CALLBACK_PATTERN}(.+)$": handlers.userlist_button,
     rf"^{config.TOP_MENU_CALLBACK_PATTERN}(.+)$": handlers.top_menu_button,
     rf"^{config.TOP_SUBMENU_CALLBACK_PATTERN}(.+)$": handlers.top_submenu_button,
-    rf"^{config.RULES_MENU_CALLBACK_PATTERN}(.+)$": handlers.rules_menu_button,
-    rf"^{config.RULES_SUBMENU_CALLBACK_PATTERN}(.+)$": handlers.rules_submenu_button
+    rf"^{config.RULES_CALLBACK_PATTERN}(.+)$": handlers.rules_button,
+    rf"^{config.RULETYPE_CALLBACK_PATTERN}(.+)$": handlers.ruletype_button,
+    rf"^{config.ROLE_CALLBACK_PATTERN}(.+)$": handlers.role_button
 }
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
