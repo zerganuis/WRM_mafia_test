@@ -49,7 +49,10 @@ async def get_userlist() -> Iterable[User]:
     return users
 
 async def get_userlist_by_event_id(event_id: int) -> Iterable[User]:
-    sql = f"""{_get_users_base_sql()}"""
+    sql = f"""{_get_users_base_sql()[:-11]}
+            from statistic s
+            left join user u on u.telegram_id = s.user_id
+            where s.event_id = {event_id}"""
     users = await _get_userlist_from_db(sql)
     return users
 
