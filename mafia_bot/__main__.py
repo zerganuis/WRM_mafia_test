@@ -25,10 +25,11 @@ COMMAND_HANDLERS = {
 }
 
 CALLBACK_QUERY_HANDLERS = {
-    rf"^{config.EVENTLIST_CALLBACK_PATTERN}(\d+)$": handlers.eventlist_page_button,
-    rf"^{config.EVENT_PROFILE_CALLBACK_PATTERN}(\d+)$": handlers.event_profile_button,
+    rf"^{config.EVENTLIST_CALLBACK_PATTERN}(.+)$": handlers.eventlist_page_button,
+    rf"^{config.EVENT_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.event_profile_button,
     rf"^{config.USER_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.user_profile_button,
-    rf"^{config.TOP_CALLBACK_PATTERN}(\d+)$": handlers.top_button
+    rf"^{config.USERLIST_CALLBACK_PATTERN}(.+)$": handlers.userlist_button,
+    rf"^{config.TOP_CALLBACK_PATTERN}(.+)$": handlers.top_button
 }
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)

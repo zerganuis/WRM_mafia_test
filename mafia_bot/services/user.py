@@ -48,6 +48,16 @@ async def get_userlist() -> Iterable[User]:
     users = await _get_userlist_from_db(sql)
     return users
 
+async def get_userlist_by_event_id(event_id: int) -> Iterable[User]:
+    sql = f"""{_get_users_base_sql()}"""
+    users = await _get_userlist_from_db(sql)
+    return users
+
+async def get_user_by_id(telegram_id: int) -> User:
+    sql = f"""{_get_users_base_sql()}
+            WHERE u.telegram_id = {telegram_id}"""
+    user = await _get_user_from_db(sql)
+    return user
 
 def _get_users_base_sql(select_param: LiteralString | None = None) -> LiteralString:
     return f"""SELECT
@@ -85,13 +95,6 @@ def _get_access_level(access_level_id: int) -> AccessLevel:
             return AccessLevel.ADMIN
         case _:
             raise ValueError(f"Unsupported access_level_id value: {access_level_id}")
-
-
-async def get_user_by_id(telegram_id: int) -> User:
-    sql = f"""{_get_users_base_sql()}
-            WHERE u.telegram_id = {telegram_id}"""
-    user = await _get_user_from_db(sql)
-    return user
 
 
 async def _get_user_from_db(sql: LiteralString) -> User:

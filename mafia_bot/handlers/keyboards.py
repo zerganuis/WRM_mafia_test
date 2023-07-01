@@ -60,10 +60,10 @@ def get_eventlist_keyboard(
 def get_event_profile_keyboard(callback_prefix: dict[str, str]):
     keyboard = [
         [InlineKeyboardButton(
-            "Игроки", callback_data=f"{callback_prefix['event_profile']}{0}"
+            "Игроки", callback_data=f"{callback_prefix['userlist']}"
         )],
         [InlineKeyboardButton(
-            "Записаться", callback_data=f"{callback_prefix['event_profile']}{1}"
+            "Записаться", callback_data=f"{callback_prefix['userlist']}"
         )],
         [InlineKeyboardButton(
             "< Назад", callback_data=f"{callback_prefix['back']}{0}"
@@ -82,14 +82,35 @@ def get_user_profile_keyboard(callback_prefix: str):
 
 def get_top_keyboard(
         users_on_page: Iterable[User],
-        callback_prefix: str
+        callback_prefix: str,
+        button_name
 ) -> InlineKeyboardMarkup:
     keyboard = []
     for user in users_on_page:
         keyboard.append(
             [InlineKeyboardButton(
-                f"{user.name} ({user.total_score})",
+                button_name(user),
                 callback_data=f"{callback_prefix}{user.id}"
             )]
         )
+    return InlineKeyboardMarkup(keyboard)
+
+def get_userlist_keyboard(
+        users_on_page: Iterable[User],
+        callback_prefix: dict[str, str],
+        button_name
+) -> InlineKeyboardMarkup:
+    keyboard = []
+    for user in users_on_page:
+        keyboard.append(
+            [InlineKeyboardButton(
+                button_name(user),
+                callback_data=f"{callback_prefix['user_profile']}{user.id}"
+            )]
+        )
+    keyboard.append(
+        [InlineKeyboardButton(
+            "< Назад", callback_data=f"{callback_prefix['back']}"
+        )]
+    )
     return InlineKeyboardMarkup(keyboard)

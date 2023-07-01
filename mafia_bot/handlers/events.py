@@ -67,7 +67,7 @@ async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYP
         reply_markup=get_event_profile_keyboard(
             callback_prefix={
                 "back": config.EVENTLIST_CALLBACK_PATTERN,
-                "event_profile": config.EVENT_PROFILE_CALLBACK_PATTERN
+                "userlist": f"{config.USERLIST_CALLBACK_PATTERN}{query.data}" # config.EVENT_PROFILE_CALLBACK_PATTERN}{current_event.id
             }
         ),
         parse_mode=telegram.constants.ParseMode.HTML,
