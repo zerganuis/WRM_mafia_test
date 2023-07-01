@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-import enum
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from mafia_bot.services.event import Event
