@@ -37,6 +37,12 @@ CALLBACK_QUERY_HANDLERS = {
     rf"^{config.ROLE_CALLBACK_PATTERN}(.+)$": handlers.role_button
 }
 
+CONVERSATION_HANDLERS = [
+    handlers.get_registration_conversation(
+        CommandHandler("reg", handlers.registration)
+    ),
+]
+
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -53,6 +59,9 @@ def main():
 
     for pattern, handler in CALLBACK_QUERY_HANDLERS.items():
         application.add_handler(CallbackQueryHandler(handler, pattern=pattern))
+
+    for handler in CONVERSATION_HANDLERS:
+        application.add_handler(handler)
 
     application.run_polling()
 

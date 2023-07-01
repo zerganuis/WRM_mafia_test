@@ -1,5 +1,3 @@
-import datetime
-
 import telegram
 from telegram import Update
 from telegram.ext import ContextTypes
