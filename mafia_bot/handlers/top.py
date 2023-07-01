@@ -1,15 +1,14 @@
 import datetime
-import enum
 
 import telegram
-from telegram import Update, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import ContextTypes
 
 from mafia_bot import config
 from mafia_bot.handlers.response import send_response
 from mafia_bot.handlers.keyboards import get_top_menu_keyboard, get_userlist_keyboard
 from mafia_bot.templates import render_template
-from mafia_bot.services.user import get_userlist, get_top_users
+from mafia_bot.services.user import get_top_users
 
 
 _all_periods = {
@@ -19,7 +18,19 @@ _all_periods = {
 
 
 async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await _top_menu(update, context)
+    if not update.message:
+        return
+    await send_response(
+        update,
+        context,
+        render_template(
+            "top_menu.j2"
+        ),
+        get_top_menu_keyboard(
+            _all_periods,
+            f"{config.TOP_SUBMENU_CALLBACK_PATTERN}"
+        )
+    )
 
 
 async def top_menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -38,40 +49,6 @@ async def top_menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=telegram.constants.ParseMode.HTML,
     )
 
-async def _top_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not update.message:
-        return
-    await send_response(
-        update,
-        context,
-        render_template(
-            "top_menu.j2"
-        ),
-        get_top_menu_keyboard(
-            _all_periods,
-            f"{config.TOP_SUBMENU_CALLBACK_PATTERN}"
-        )
-    )
-
-
-# async def _top_month(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     period = datetime.timedelta(days=30)
-#     users = list(await get_top_users(period))
-#     if not update.message:
-#         return
-#     await send_response(
-#         update,
-#         context,
-#         render_template(
-#             "top.j2",
-#             {"period": "За последние 30 дней", "userlist": users}
-#         ),
-#         get_top_submenu_keyboard(
-#             users,
-#             f"{config.USER_PROFILE_CALLBACK_PATTERN}{config.TOP_MENU_CALLBACK_PATTERN}{MONTH_TOP}_",
-#             lambda user: f"{user.name} ({user.total_score})"
-#         )
-#     )
 
 async def top_submenu_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query

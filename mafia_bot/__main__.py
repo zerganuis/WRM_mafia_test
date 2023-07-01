@@ -21,7 +21,8 @@ COMMAND_HANDLERS = {
     "help": handlers.help_,
     "info": handlers.info,
     "events": handlers.eventlist,
-    "top": handlers.top
+    "top": handlers.top,
+    "rules": handlers.rules
 }
 
 CALLBACK_QUERY_HANDLERS = {
@@ -30,7 +31,9 @@ CALLBACK_QUERY_HANDLERS = {
     rf"^{config.USER_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.user_profile_button,
     rf"^{config.USERLIST_CALLBACK_PATTERN}(.+)$": handlers.userlist_button,
     rf"^{config.TOP_MENU_CALLBACK_PATTERN}(.+)$": handlers.top_menu_button,
-    rf"^{config.TOP_SUBMENU_CALLBACK_PATTERN}(.+)$": handlers.top_submenu_button
+    rf"^{config.TOP_SUBMENU_CALLBACK_PATTERN}(.+)$": handlers.top_submenu_button,
+    rf"^{config.RULES_MENU_CALLBACK_PATTERN}(.+)$": handlers.rules_menu_button,
+    rf"^{config.RULES_SUBMENU_CALLBACK_PATTERN}(.+)$": handlers.rules_submenu_button
 }
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
