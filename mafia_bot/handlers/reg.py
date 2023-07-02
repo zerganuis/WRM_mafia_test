@@ -144,8 +144,11 @@ async def _cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.message.from_user
     await delete_user(user.id)
     await delete_user_registration(user.id)
-    await update.message.reply_text(
-        f"Регистрация отменена")
+    await send_response(
+        update,
+        context,
+        render_template("cancel.j2")
+    )
     return ConversationHandler.END
 
 

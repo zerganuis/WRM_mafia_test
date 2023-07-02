@@ -66,7 +66,7 @@ async def top_submenu_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
         reply_markup=get_userlist_keyboard(
             users,
             {
-                "user_profile": f"{config.USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
+                "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
                 "back": f"{config.TOP_MENU_CALLBACK_PATTERN}0"
             },
             lambda user: f"{user.name} ({user.total_score})"

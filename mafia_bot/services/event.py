@@ -76,3 +76,36 @@ async def get_event(event_id: int) -> Event:
               where e.id = {event_id}"""
     event = await _get_event_from_db(sql)
     return event
+
+
+async def update_event_parameter(param_name: str, param_value: str, event_id: int):
+    sql = f"""UPDATE event
+        SET {param_name} = '{param_value}'
+        where id = {event_id}
+    """
+    await fetch_one(sql)
+
+
+async def insert_event_id(event_id: int):
+    sql_user = f"""INSERT INTO event values
+    ({event_id}, '', datetime('now'), '', null)"""
+    sql_user_reg = f"""INSERT INTO event_registration values ({event_id})"""
+    await fetch_one(sql_user)
+    await fetch_one(sql_user_reg)
+
+
+async def delete_event(event_id: int):
+    sql_user = f"""DELETE from event where id = {event_id}"""
+    await fetch_one(sql_user)
+
+
+async def delete_event_registration(event_id: int):
+    sql_user_reg = f"""DELETE from event_registration where id = {event_id}"""
+    await fetch_one(sql_user_reg)
+
+
+# sql_reqest = f"""select max(id) as max_id from event"""
+# max_event_id_dict = await fetch_one(sql_reqest)
+# max_event_id = max_event_id_dict['max_id']
+# print(max_event_id)
+# next_event_id = max_event_id + 1

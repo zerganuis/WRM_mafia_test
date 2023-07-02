@@ -115,6 +115,7 @@ async def _get_user_from_db(sql: LiteralString) -> User:
             total_score=user.get("total_score", None)
         )
 
+
 async def update_user_parameter(param_name: str, param_value: str, user_id: int):
     sql = f"""UPDATE user
         SET {param_name} = '{param_value}'
@@ -130,9 +131,11 @@ async def insert_user_id(telegram_id: int):
     await fetch_one(sql_user)
     await fetch_one(sql_user_reg)
 
+
 async def delete_user(telegram_id: int):
     sql_user = f"""DELETE from user where telegram_id = {telegram_id}"""
     await fetch_one(sql_user)
+
 
 async def delete_user_registration(telegram_id: int):
     sql_user_reg = f"""DELETE from user_registration where telegram_id = {telegram_id}"""

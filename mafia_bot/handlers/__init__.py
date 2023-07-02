@@ -5,14 +5,24 @@ from .events import (
     eventlist,
     eventlist_page_button,
     event_profile_button,
-    event_profile_button
+    event_profile_button,
+    get_edit_event_conversation,
+    edit_event_profile_button
 )
 from .top import (
     top,
     top_menu_button,
     top_submenu_button
 )
-from .user import user_profile_button, userlist_button
+from .user import (
+    view_user_profile_button,
+    userlist_button,
+    profile,
+    edit_user_profile_button,
+    user_profile_button,
+    get_edit_user_conversation,
+    delete
+)
 from .rules import (
     rules,
     rules_button,
@@ -31,13 +41,20 @@ __all__ = [
     "event_profile_button",
     "top",
     "top_menu_button",
-    "top_submenu_button"
+    "top_submenu_button",
     "user_profile_button",
+    "view_user_profile_button",
     "userlist_button",
+    "profile",
+    "edit_user_profile_button",
     "rules",
     "rules_button",
     "ruletype_button",
     "role_button",
     "registration",
-    "get_registration_conversation"
+    "get_registration_conversation",
+    "get_edit_user_conversation",
+    "get_edit_event_conversation",
+    "edit_event_profile_button",
+    "delete",
 ]

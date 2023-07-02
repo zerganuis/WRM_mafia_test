@@ -63,7 +63,10 @@ def get_event_profile_keyboard(callback_prefix: dict[str, str]):
             "Игроки", callback_data=f"{callback_prefix['userlist']}"
         )],
         [InlineKeyboardButton(
-            "Записаться", callback_data=f"{callback_prefix['userlist']}"
+            "Записаться", callback_data=f"{callback_prefix['sign_up']}"
+        )],
+        [InlineKeyboardButton(
+            "Редактировать", callback_data=f"{callback_prefix['edit']}"
         )],
         [InlineKeyboardButton(
             "< Назад", callback_data=f"{callback_prefix['back']}{0}"
@@ -71,7 +74,69 @@ def get_event_profile_keyboard(callback_prefix: dict[str, str]):
     ]
     return InlineKeyboardMarkup(keyboard)
 
+
 def get_user_profile_keyboard(callback_prefix: str):
+    keyboard = [
+        [InlineKeyboardButton(
+            "Редактировать", callback_data=f"{callback_prefix}"
+        )]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+def get_edit_user_profile_keyboard(callback_prefix: dict[str, str]):
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "Имя",
+                callback_data=f"{callback_prefix['name']}"),
+            InlineKeyboardButton(
+                "Никнейм",
+                callback_data=f"{callback_prefix['nickname']}")
+        ],
+        [
+            InlineKeyboardButton(
+                "Город",
+                callback_data=f"{callback_prefix['city']}"),
+            InlineKeyboardButton(
+                "Фото",
+                callback_data=f"{callback_prefix['photo']}")
+        ],
+        [
+            InlineKeyboardButton(
+                "< Назад",
+                callback_data=f"{callback_prefix['back']}")
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+def get_edit_event_profile_keyboard(callback_prefix: dict[str, str]):
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                "Название",
+                callback_data=f"{callback_prefix['name']}"),
+            InlineKeyboardButton(
+                "Дата и время",
+                callback_data=f"{callback_prefix['datetime']}")
+        ],
+        [
+            InlineKeyboardButton(
+                "Место",
+                callback_data=f"{callback_prefix['place']}"),
+            InlineKeyboardButton(
+                "Ведущий",
+                callback_data=f"{callback_prefix['host']}")
+        ],
+        [
+            InlineKeyboardButton(
+                "< Назад",
+                callback_data=f"{callback_prefix['back']}")
+        ]
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_view_user_profile_keyboard(callback_prefix: str):
     keyboard = [
         [InlineKeyboardButton(
             "< Назад", callback_data=f"{callback_prefix}"

@@ -22,23 +22,30 @@ COMMAND_HANDLERS = {
     "info": handlers.info,
     "events": handlers.eventlist,
     "top": handlers.top,
-    "rules": handlers.rules
+    "rules": handlers.rules,
+    "profile": handlers.profile,
+    "delete": handlers.delete
 }
 
 CALLBACK_QUERY_HANDLERS = {
     rf"^{config.EVENTLIST_CALLBACK_PATTERN}(.+)$": handlers.eventlist_page_button,
     rf"^{config.EVENT_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.event_profile_button,
-    rf"^{config.USER_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.user_profile_button,
+    rf"^{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.view_user_profile_button,
     rf"^{config.USERLIST_CALLBACK_PATTERN}(.+)$": handlers.userlist_button,
     rf"^{config.TOP_MENU_CALLBACK_PATTERN}(.+)$": handlers.top_menu_button,
     rf"^{config.TOP_SUBMENU_CALLBACK_PATTERN}(.+)$": handlers.top_submenu_button,
     rf"^{config.RULES_CALLBACK_PATTERN}(.+)$": handlers.rules_button,
     rf"^{config.RULETYPE_CALLBACK_PATTERN}(.+)$": handlers.ruletype_button,
-    rf"^{config.ROLE_CALLBACK_PATTERN}(.+)$": handlers.role_button
+    rf"^{config.ROLE_CALLBACK_PATTERN}(.+)$": handlers.role_button,
+    rf"^{config.EDIT_USER_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.edit_user_profile_button,
+    rf"^{config.OWN_USER_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.user_profile_button,
+    rf"^{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.edit_event_profile_button,
 }
 
 CONVERSATION_HANDLERS = [
     handlers.get_registration_conversation(),
+    handlers.get_edit_user_conversation(),
+    handlers.get_edit_event_conversation()
 ]
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
