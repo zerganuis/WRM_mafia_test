@@ -25,6 +25,19 @@ create table statistic(
     foreign key (user_id) references user(telegram_id) ON DELETE CASCADE
 );
 
+create table admin(
+    telegram_id bigint primary key,
+    foreign key (telegram_id) references user(telegram_id) on delete cascade
+);
+
+create table user_registration(
+    telegram_id bigint primary key
+);
+
+create table event_registration(
+    id bigint primary key
+);
+
 insert into user values
 (1, 'Универсальный ведущий', 'Водила', 'Москва', '/photos/1.png', 1),
 (2, 'Первый игрок', 'Ник1', 'Москва', '/photos/2.png', 0),

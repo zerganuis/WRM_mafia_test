@@ -16,7 +16,13 @@ from mafia_bot import config
 from mafia_bot.handlers.response import send_response
 from mafia_bot.templates import render_template
 from mafia_bot.services.event import Event
-from mafia_bot.services.user import User
+from mafia_bot.services.user import (
+    User,
+    insert_user_id,
+    delete_user,
+    delete_user_registration,
+    update_user_parameter
+)
 
 template_prefix = "reg/"
 
@@ -28,8 +34,10 @@ class RegistrationState(enum.Enum):
 
 
 async def registration(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
+    user = update.message.from_user
     if not update.message:
         return
+    await insert_user_id(user.id)
     await send_response(
         update,
         context,
@@ -42,6 +50,12 @@ async def registration(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Re
 
 async def _get_user_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     user = update.message.from_user
+    text = update.message.text
+    await update_user_parameter(
+        "name",
+        text,
+        user.id
+    )
     await send_response(
         update,
         context,
@@ -53,6 +67,12 @@ async def _get_user_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def _get_user_nickname(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     user = update.message.from_user
+    text = update.message.text
+    await update_user_parameter(
+        "nickname",
+        text,
+        user.id
+    )
     await send_response(
         update,
         context,
@@ -64,6 +84,12 @@ async def _get_user_nickname(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def _get_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     user = update.message.from_user
+    text = update.message.text
+    await update_user_parameter(
+        "city",
+        text,
+        user.id
+    )
     await send_response(
         update,
         context,
@@ -86,6 +112,13 @@ async def _skip_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def _get_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     user = update.message.from_user
+    path = f"photo/{user.id}"
+    await update_user_parameter(
+        "photo_link",
+        path,
+        user.id
+    )
+    await delete_user_registration(user.id)
     await send_response(
         update,
         context,
@@ -97,6 +130,7 @@ async def _get_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def _skip_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     user = update.message.from_user
+    await delete_user_registration(user.id)
     await send_response(
         update,
         context,
@@ -108,14 +142,16 @@ async def _skip_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def _cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.message.from_user
+    await delete_user(user.id)
+    await delete_user_registration(user.id)
     await update.message.reply_text(
-        "Регистрация отменена")
+        f"Регистрация отменена")
     return ConversationHandler.END
 
 
-def get_registration_conversation(entry_point: CommandHandler) -> ConversationHandler:
+def get_registration_conversation() -> ConversationHandler:
     return ConversationHandler(
-        entry_points=[entry_point],
+        entry_points=[CommandHandler("reg", registration)],
         states={
             RegistrationState.NAME: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, _get_user_name)
@@ -132,5 +168,5 @@ def get_registration_conversation(entry_point: CommandHandler) -> ConversationHa
                 CommandHandler("skip", _skip_user_photo)
             ],
         },
-        fallbacks=[CommandHandler("cancel", _cancel)],
+        fallbacks=[MessageHandler(filters.COMMAND & ~filters.Regex("^/skip$"), _cancel)],
     )

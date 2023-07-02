@@ -46,6 +46,7 @@ async def _get_cursor(
     db = await get_db()
     args: tuple[LiteralString, Iterable[Any] | None] = (sql, params)
     cursor = await db.execute(*args)
+    await db.commit()
     db.row_factory = aiosqlite.Row
     return cursor
 

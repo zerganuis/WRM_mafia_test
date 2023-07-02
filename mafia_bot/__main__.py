@@ -38,9 +38,7 @@ CALLBACK_QUERY_HANDLERS = {
 }
 
 CONVERSATION_HANDLERS = [
-    handlers.get_registration_conversation(
-        CommandHandler("reg", handlers.registration)
-    ),
+    handlers.get_registration_conversation(),
 ]
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -54,14 +52,14 @@ if not config.TELEGRAM_BOT_TOKEN:
 def main():
     application = ApplicationBuilder().token(config.TELEGRAM_BOT_TOKEN).build()
 
+    for handler in CONVERSATION_HANDLERS:
+        application.add_handler(handler)
+
     for command_name, command_haldler in COMMAND_HANDLERS.items():
         application.add_handler(CommandHandler(command_name, command_haldler))
 
     for pattern, handler in CALLBACK_QUERY_HANDLERS.items():
         application.add_handler(CallbackQueryHandler(handler, pattern=pattern))
-
-    for handler in CONVERSATION_HANDLERS:
-        application.add_handler(handler)
 
     application.run_polling()
 
