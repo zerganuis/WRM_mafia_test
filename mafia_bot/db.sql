@@ -12,6 +12,8 @@ create table event(
     name varchar(64) not null,
     datetime datetime not null,
     place text not null,
+    cost text not null,
+    description text not null,
     host_id bigint,
     foreign key (host_id) references user(telegram_id) ON DELETE SET null
 );
@@ -44,11 +46,11 @@ insert into user values
 (3, 'Второй игрок', 'Ник2', 'Москва', '/photos/3.png', 0),
 (4, 'Третий игрок', 'Ник3', 'Москва', '/photos/4.png', 0);
 
-insert into event (name, datetime, place, host_id) values
-('Первое мероприятие', datetime('now', '+1 month'), 'За гаражами', 1),
-('Второе мероприятие', datetime('now', '+1 month'), 'В лесу', 1),
-('Третье мероприятие', datetime('now', '+1 month'), 'Не знамо где', 1),
-('Четвертое мероприятие', datetime('now', '+1 month'), 'Прям тут', 1);
+insert into event (name, datetime, place, cost, description, host_id) values
+('Первое мероприятие', datetime('now', '+1 month'), 'За гаражами', '1200 рублей', '', 1),
+('Второе мероприятие', datetime('now', '+1 month'), 'В лесу', '325 рублей/час', '', 1),
+('Третье мероприятие', datetime('now', '+1 month'), 'Не знамо где', '400 рублей за вечер', '', 1),
+('Четвертое мероприятие', datetime('now', '+1 month'), 'Прям тут', '$900', '', 1);
 
 insert into statistic (user_id, event_id) values
 (2, 1),

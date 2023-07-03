@@ -11,8 +11,9 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 BASE_DIR = Path(__file__).resolve().parent
 SQLITE_DB_FILE = BASE_DIR.joinpath('db.sqlite3')
 TEMPLATES_DIR = BASE_DIR.joinpath('templates')
+PHOTOS_DIR = BASE_DIR.joinpath('photos')
 
-DATE_FORMAT = "%d.%m.%Y"
+DATETIME_FORMAT = rf"%d.%m.%Y %H:%M"
 
 EVENTLIST_CALLBACK_PATTERN = "eventlist_"
 EVENT_PROFILE_CALLBACK_PATTERN = "eventprofile_"
@@ -26,6 +27,7 @@ RULETYPE_CALLBACK_PATTERN = "ruletype_"
 ROLE_CALLBACK_PATTERN = "role_"
 EDIT_USER_PROFILE_CALLBACK_PATTERN = "edituser_"
 EDIT_EVENT_PROFILE_CALLBACK_PATTERN = "editevent_"
+EVENT_SIGN_UP_CALLBACK_PATTERN = "signup_"
 
 
 EVENTLIST_PAGE_LENGTH = 2

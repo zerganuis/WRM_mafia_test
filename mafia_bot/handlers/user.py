@@ -1,7 +1,7 @@
 import datetime
 
 import telegram
-from telegram import Update
+from telegram import Update, InputMediaPhoto, PhotoSize
 from telegram.ext import (
     ContextTypes,
     ConversationHandler,
@@ -49,6 +49,10 @@ async def user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE
     await query.answer()
     user_id = _get_user_id(query.data)
     user = await get_user_by_id(user_id)
+    path = config.PHOTOS_DIR.joinpath(f"{user.id}.png")
+    await query.edit_message_media(
+        media=InputMediaPhoto(open(path, 'rb'), filename="photo")
+    )
     await query.edit_message_text(
         text=render_template(
             "user.j2",
@@ -204,8 +208,16 @@ async def edit_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def edit_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    param_value = update.message.text
+    photo_file = await update.message.photo[-1].get_file()
+    user = update.message.from_user
+    path = config.PHOTOS_DIR.joinpath(f"{user.id}.png")
+    # path = f"./photos/{user.id}.png"
+    await photo_file.download_to_drive(custom_path=path)
+    await update_user_parameter(
+        "photo_link",
+        path,
+        user.id
+    )
     await send_response(
         update,
         context,

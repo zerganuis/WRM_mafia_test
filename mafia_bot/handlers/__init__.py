@@ -7,7 +7,8 @@ from .events import (
     event_profile_button,
     event_profile_button,
     get_edit_event_conversation,
-    edit_event_profile_button
+    edit_event_profile_button,
+    sign_up_button
 )
 from .top import (
     top,
@@ -57,4 +58,5 @@ __all__ = [
     "get_edit_event_conversation",
     "edit_event_profile_button",
     "delete",
+    "sign_up_button",
 ]

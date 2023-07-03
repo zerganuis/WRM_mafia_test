@@ -111,8 +111,11 @@ async def _skip_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     return RegistrationState.PHOTO
 
 async def _get_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
+    photo_file = await update.message.photo[-1].get_file()
     user = update.message.from_user
-    path = f"photo/{user.id}"
+    path = config.PHOTOS_DIR.joinpath(f"{user.id}.png")
+    # path = f"./photos/{user.id}.png"
+    await photo_file.download_to_drive(custom_path=path)
     await update_user_parameter(
         "photo_link",
         path,

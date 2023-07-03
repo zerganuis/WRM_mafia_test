@@ -129,6 +129,14 @@ def get_edit_event_profile_keyboard(callback_prefix: dict[str, str]):
         ],
         [
             InlineKeyboardButton(
+                "Стоимость",
+                callback_data=f"{callback_prefix['cost']}"),
+            InlineKeyboardButton(
+                "Описание",
+                callback_data=f"{callback_prefix['description']}")
+        ],
+        [
+            InlineKeyboardButton(
                 "< Назад",
                 callback_data=f"{callback_prefix['back']}")
         ]

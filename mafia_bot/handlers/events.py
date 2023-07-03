@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import telegram
 from telegram import Update, InlineKeyboardMarkup
 from telegram.ext import (
@@ -19,7 +21,9 @@ from mafia_bot.templates import render_template
 from mafia_bot.services.event import (
     get_eventlist,
     get_event,
-    update_event_parameter
+    update_event_parameter,
+    sign_up,
+    is_signed_up
 )
 from mafia_bot.services.user import get_user_by_id
 
@@ -74,8 +78,8 @@ async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYP
             "event.j2",
             {
                 "event": current_event,
-                "host": host,
-                "cost": "1500 рублей"
+                "datetime": current_event.datetime.strftime(config.DATETIME_FORMAT),
+                "host": host
             },
         ),
         reply_markup=get_event_profile_keyboard(
@@ -83,15 +87,35 @@ async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYP
                 "back": config.EVENTLIST_CALLBACK_PATTERN,
                 "userlist": f"{config.USERLIST_CALLBACK_PATTERN}{query.data}",
                 "edit": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}{current_event.id}",
-                "sign_up": f" "
+                "sign_up": f"{config.EVENT_SIGN_UP_CALLBACK_PATTERN}{current_event.id}"
             }
         ),
         parse_mode=telegram.constants.ParseMode.HTML,
     )
 
 
-async def _get_current_event(query_data):
-    pattern_prefix_length = len(config.EVENT_PROFILE_CALLBACK_PATTERN)
+async def sign_up_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    current_event =  await _get_current_event(query.data)
+    user_id = query.from_user.id
+    isSignedUp_ = await is_signed_up(user_id, current_event.id)
+    if not isSignedUp_:
+        await sign_up(user_id, current_event.id)
+    await send_response(
+        update,
+        context,
+        render_template(
+            "sign_up.j2",
+            {
+                "isSignedUp": isSignedUp_
+            }
+        )
+    )
+
+
+async def _get_current_event(query_data: str):
+    pattern_prefix_length = query_data.rfind("_") + 1  # len(config.EVENT_PROFILE_CALLBACK_PATTERN)
     event_id = int(query_data[pattern_prefix_length:])
     return await get_event(event_id)
 
@@ -100,10 +124,6 @@ def _get_current_page_index(query_data) -> int:
     pattern_prefix_length = len(config.EVENTLIST_CALLBACK_PATTERN)
     return int(query_data[pattern_prefix_length:])
 
-###############################################################################################################################################
-###############################################################################################################################################
-###############################################################################################################################################
-###############################################################################################################################################
 
 async def edit_event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -120,6 +140,8 @@ async def edit_event_profile_button(update: Update, context: ContextTypes.DEFAUL
                 "name": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN[:-1]}.name_{event_id}",
                 "datetime": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN[:-1]}.datetime_{event_id}",
                 "place": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN[:-1]}.place_{event_id}",
+                "cost": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN[:-1]}.cost_{event_id}",
+                "description": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN[:-1]}.description_{event_id}",
                 "host": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN[:-1]}.host_{event_id}",
                 "back": f"{config.EVENT_PROFILE_CALLBACK_PATTERN}{event_id}"
             }
@@ -139,7 +161,6 @@ async def edit_event_parameter_start_button(update: Update, context: ContextType
     if not query.data or not query.data.strip():
         return
     param_name = _get_param_name(query.data)
-    print(param_name)
     template = "edit_parameter_base.j2"
     if param_name == "datetime":
         template = "edit_parameter_datetime.j2"
@@ -195,6 +216,30 @@ async def edit_event_place(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
+async def edit_event_cost(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    event_id = update.message.from_user.id
+    param_value = update.message.text
+    await update_event_parameter("cost", param_value, event_id)
+    await send_response(
+        update,
+        context,
+        render_template("done.j2")
+    )
+    return ConversationHandler.END
+
+
+async def edit_event_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    event_id = update.message.from_user.id
+    param_value = update.message.text
+    await update_event_parameter("description", param_value, event_id)
+    await send_response(
+        update,
+        context,
+        render_template("done.j2")
+    )
+    return ConversationHandler.END
+
+
 async def edit_event_host(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     param_value = update.message.text
@@ -223,8 +268,14 @@ def get_edit_event_conversation() -> ConversationHandler:
             "name": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_event_name)],
             "datetime": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_event_datetime)],
             "place": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_event_place)],
+            "cost": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_event_cost)],
+            "description": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_event_description)],
             "host": [MessageHandler(filters.PHOTO, edit_event_host)]
         },
         fallbacks=[MessageHandler(filters.COMMAND, _cancel)]
     )
 
+def _format_datetime(text: str) -> str:
+    dt = datetime.strptime(text, config.DATETIME_FORMAT)
+    dt_to_sql = dt.strftime(rf"%Y-%m-%d %H:%M:%S")
+    return

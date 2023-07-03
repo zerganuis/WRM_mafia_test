@@ -40,6 +40,7 @@ CALLBACK_QUERY_HANDLERS = {
     rf"^{config.EDIT_USER_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.edit_user_profile_button,
     rf"^{config.OWN_USER_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.user_profile_button,
     rf"^{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.edit_event_profile_button,
+    rf"^{config.EVENT_SIGN_UP_CALLBACK_PATTERN}(.+)$": handlers.sign_up_button,
 }
 
 CONVERSATION_HANDLERS = [
