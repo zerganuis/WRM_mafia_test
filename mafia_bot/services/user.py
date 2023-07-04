@@ -141,5 +141,32 @@ async def delete_user_registration(telegram_id: int):
     sql_user_reg = f"""DELETE from user_registration where telegram_id = {telegram_id}"""
     await fetch_one(sql_user_reg)
 
+async def edit_statistic_is_winner(user_id: int, event_id: int, isWinner: bool):
+    sql = f"""  update statistic
+                set isWinner = {'true' if isWinner else 'false'}
+                where user_id = {user_id} and event_id = {event_id}"""
+    await fetch_one(sql)
+
+async def edit_statistic_score(user_id: int, event_id: int, score: int):
+    sql = f"""  update statistic
+                set score = {score}
+                where user_id = {user_id} and event_id = {event_id}"""
+    await fetch_one(sql)
+
+
+async def insert_edit_statistic(user_id: int, event_id: int):
+    sql = f"""INSERT INTO statistic_edit values ({user_id}, {event_id})"""
+    await fetch_one(sql)
+
+
+async def delete_edit_statistic():
+    sql = f"""DELETE from statistic_edit"""
+    await fetch_one(sql)
+
+async def get_edit_statistic() -> dict[str, int]:
+    sql = f"""select * from statistic_edit limit 1"""
+    response = await fetch_one(sql)
+    return response
+
 def get_user_id_by_telegram_nick(telegram_nick: str) -> int:
     return

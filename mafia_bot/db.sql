@@ -40,6 +40,11 @@ create table event_registration(
     id bigint primary key
 );
 
+create table statistic_edit(
+    user_id int not null,
+    event_id int not null
+);
+
 insert into user values
 (1, 'Универсальный ведущий', 'Водила', 'Москва', '/photos/1.png', 1),
 (2, 'Первый игрок', 'Ник1', 'Москва', '/photos/2.png', 0),

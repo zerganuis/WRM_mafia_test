@@ -22,7 +22,10 @@ from .user import (
     edit_user_profile_button,
     user_profile_button,
     get_edit_user_conversation,
-    delete
+    delete,
+    get_edit_user_score_conversation,
+    grade_user_button,
+    is_winner_user_button
 )
 from .rules import (
     rules,
@@ -62,4 +65,7 @@ __all__ = [
     "sign_up_button",
     "create_event",
     "get_regevent_conversation",
+    "get_edit_user_score_conversation",
+    "grade_user_button",
+    "is_winner_user_button",
 ]

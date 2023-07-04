@@ -16,14 +16,20 @@ from mafia_bot.handlers.keyboards import (
     get_view_user_profile_keyboard,
     get_userlist_keyboard,
     get_user_profile_keyboard,
-    get_edit_user_profile_keyboard
+    get_edit_user_profile_keyboard,
+    get_grade_user_keyboard
 )
 from mafia_bot.templates import render_template
 from mafia_bot.services.user import (
     get_user_by_id,
     get_userlist_by_event_id,
     update_user_parameter,
-    delete_user
+    delete_user,
+    edit_statistic_score,
+    edit_statistic_is_winner,
+    insert_edit_statistic,
+    get_edit_statistic,
+    delete_edit_statistic
 )
 
 
@@ -47,6 +53,8 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    if not query.data or not query.data.strip():
+        return
     user_id = _get_user_id(query.data)
     user = await get_user_by_id(user_id)
     await query.edit_message_text(
@@ -63,11 +71,9 @@ async def user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def view_user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    print(
-        query.from_user.link,
-        query.from_user.username
-    )
     await query.answer()
+    if not query.data or not query.data.strip():
+        return
     prev_callback = _get_prev_callback(query.data, config.VIEW_USER_PROFILE_CALLBACK_PATTERN)
     user_id = _get_user_id(query.data)
     user = await get_user_by_id(user_id)
@@ -77,15 +83,67 @@ async def view_user_profile_button(update: Update, context: ContextTypes.DEFAULT
             {"user": user}
         ),
         reply_markup=get_view_user_profile_keyboard(
-            callback_prefix=prev_callback
+            callback_prefix={
+                "grade": f"{config.GRADE_CALLBACK_PATTERN}{query.data}_0",
+                "back": prev_callback
+            }
         ),
         parse_mode=telegram.constants.ParseMode.HTML,
     )
+
+
+async def grade_user_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if not query.data or not query.data.strip():
+        return
+    user_id = _get_user_id(query.data[:-2])
+    event_id = _get_event_id(query.data[:-len(f"_{user_id}_0")])
+    user = await get_user_by_id(user_id)
+    prev_callback = "".join((
+        config.VIEW_USER_PROFILE_CALLBACK_PATTERN,
+        config.USERLIST_CALLBACK_PATTERN,
+        config.EVENT_PROFILE_CALLBACK_PATTERN,
+        f"{event_id}_",
+        f"{user_id}"
+    ))
+    await query.edit_message_text(
+        text=render_template(
+            "grade_user.j2",
+            {"user": user}
+        ),
+        reply_markup=get_grade_user_keyboard(
+            callback_prefix={
+                "grade": f"{config.GRADE_REQEST_CALLBACK_PATTERN}{event_id}_{user_id}",
+                "winner": f"{config.ISWINNER_CALLBACK_PATTERN}{event_id}_{user_id}_1",
+                "loser": f"{config.ISWINNER_CALLBACK_PATTERN}{event_id}_{user_id}_0",
+                "back": prev_callback
+            }
+        ),
+        parse_mode=telegram.constants.ParseMode.HTML,
+    )
+
+
+async def is_winner_user_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if not query.data or not query.data.strip():
+        return
+    isWinner = bool(_get_user_id(query.data))
+    user_id = _get_user_id(query.data[:-2])
+    event_id = _get_event_id(query.data[:-len(f"_{user_id}_0")])
+    await edit_statistic_is_winner(user_id, event_id, isWinner)
+
 
 def _get_user_id(query_data: str) -> int:
     pattern_prefix_length = query_data.rfind("_") + 1
     user_id = int(query_data[pattern_prefix_length:])
     return user_id
+
+def _get_event_id(query_data: str) -> int:
+    pattern_prefix_length = query_data.rfind("_") + 1
+    event_id = int(query_data[pattern_prefix_length:])
+    return event_id
 
 def _get_prev_callback(query_data, current_callback) -> str:
     pattern_prefix_length = len(current_callback)
@@ -115,12 +173,6 @@ async def userlist_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ),
         parse_mode=telegram.constants.ParseMode.HTML,
     )
-
-
-def _get_event_id(query_data):
-    pattern_prefix_length = query_data.rfind("_") + 1
-    event_id = int(query_data[pattern_prefix_length:])
-    return event_id
 
 
 async def edit_user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -250,3 +302,33 @@ def get_edit_user_conversation() -> ConversationHandler:
 async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     await delete_user(user.id)
+
+
+async def _edit_user_score_start_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if not query.data or not query.data.strip():
+        return
+    user_id = _get_user_id(query.data)
+    event_id = _get_event_id(query.data[:-len(f"_{user_id}")])
+    await insert_edit_statistic(user_id, event_id)
+    await send_response(update, context, render_template("score_edit.j2"))
+    return 1
+
+async def _edit_user_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    ids = await get_edit_statistic()
+    param_value = int(update.message.text.strip())
+    await edit_statistic_score(ids['user_id'], ids['event_id'], param_value)
+    await delete_edit_statistic()
+    await send_response(update, context, render_template("done.j2"))
+    return ConversationHandler.END
+
+def get_edit_user_score_conversation() -> ConversationHandler:
+    pattern = rf"^{config.GRADE_REQEST_CALLBACK_PATTERN}(.+)$"
+    return ConversationHandler(
+        entry_points=[CallbackQueryHandler(_edit_user_score_start_button, pattern=pattern)],
+        states={
+            1: [MessageHandler(filters.TEXT & ~filters.COMMAND, _edit_user_score)]
+        },
+        fallbacks=[MessageHandler(filters.COMMAND, _cancel)]
+    )

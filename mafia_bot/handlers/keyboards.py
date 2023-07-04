@@ -1,9 +1,9 @@
 from collections.abc import Iterable
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from mafia_bot import config
 from mafia_bot.services.event import Event
 from mafia_bot.services.user import User
-
 
 def get_page_keyboard(
         current_page_index: int,
@@ -144,10 +144,38 @@ def get_edit_event_profile_keyboard(callback_prefix: dict[str, str]):
     return InlineKeyboardMarkup(keyboard)
 
 
-def get_view_user_profile_keyboard(callback_prefix: str):
+def get_view_user_profile_keyboard(callback_prefix: dict[str, str]):
+    if callback_prefix['grade'].find(config.TOP_SUBMENU_CALLBACK_PATTERN) == -1:
+        keyboard = [
+            [InlineKeyboardButton(
+                "Выставить баллы", callback_data=f"{callback_prefix['grade']}"
+            )]
+        ]
+    else:
+        keyboard = []
+    keyboard.append(
+        [InlineKeyboardButton(
+            "< Назад", callback_data=f"{callback_prefix['back']}"
+        )]
+    )
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_grade_user_keyboard(callback_prefix: dict[str, str]):
     keyboard = [
         [InlineKeyboardButton(
-            "< Назад", callback_data=f"{callback_prefix}"
+            "Выставить баллы", callback_data=f"{callback_prefix['grade']}"
+        )],
+        [
+            InlineKeyboardButton(
+                "Победитель", callback_data=f"{callback_prefix['winner']}"
+            ),
+            InlineKeyboardButton(
+                "Проигравший", callback_data=f"{callback_prefix['loser']}"
+            )
+        ],
+        [InlineKeyboardButton(
+            "< Назад", callback_data=f"{callback_prefix['back']}"
         )]
     ]
     return InlineKeyboardMarkup(keyboard)

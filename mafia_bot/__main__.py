@@ -41,13 +41,16 @@ CALLBACK_QUERY_HANDLERS = {
     rf"^{config.OWN_USER_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.user_profile_button,
     rf"^{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}(.+)$": handlers.edit_event_profile_button,
     rf"^{config.EVENT_SIGN_UP_CALLBACK_PATTERN}(.+)$": handlers.sign_up_button,
+    rf"^{config.GRADE_CALLBACK_PATTERN}(.+)$": handlers.grade_user_button,
+    rf"^{config.ISWINNER_CALLBACK_PATTERN}(.+)$": handlers.is_winner_user_button,
 }
 
 CONVERSATION_HANDLERS = [
     handlers.get_registration_conversation(),
     handlers.get_edit_user_conversation(),
     handlers.get_edit_event_conversation(),
-    handlers.get_regevent_conversation()
+    handlers.get_regevent_conversation(),
+    handlers.get_edit_user_score_conversation()
 ]
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
