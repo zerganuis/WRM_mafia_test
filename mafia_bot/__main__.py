@@ -46,7 +46,8 @@ CALLBACK_QUERY_HANDLERS = {
 CONVERSATION_HANDLERS = [
     handlers.get_registration_conversation(),
     handlers.get_edit_user_conversation(),
-    handlers.get_edit_event_conversation()
+    handlers.get_edit_event_conversation(),
+    handlers.get_regevent_conversation()
 ]
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)

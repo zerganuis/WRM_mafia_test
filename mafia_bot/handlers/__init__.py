@@ -31,6 +31,7 @@ from .rules import (
     ruletype_button
 )
 from .reg import registration, get_registration_conversation
+from .event_reg import create_event, get_regevent_conversation
 
 __all__ = [
     "start",
@@ -59,4 +60,6 @@ __all__ = [
     "edit_event_profile_button",
     "delete",
     "sign_up_button",
+    "create_event",
+    "get_regevent_conversation",
 ]

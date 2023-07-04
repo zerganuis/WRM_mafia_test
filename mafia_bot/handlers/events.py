@@ -23,7 +23,11 @@ from mafia_bot.services.event import (
     get_event,
     update_event_parameter,
     sign_up,
-    is_signed_up
+    is_signed_up,
+    format_datetime,
+    insert_edit_event_id,
+    get_reg_event_id,
+    delete_event_registration
 )
 from mafia_bot.services.user import get_user_by_id
 
@@ -151,7 +155,7 @@ async def edit_event_profile_button(update: Update, context: ContextTypes.DEFAUL
 
 
 def _get_event_id(query_data: str) -> str:
-    pattern_prefix_length = len(config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN)
+    pattern_prefix_length = query_data.rfind("_") + 1
     return int(query_data[pattern_prefix_length:])
 
 
@@ -160,6 +164,8 @@ async def edit_event_parameter_start_button(update: Update, context: ContextType
     await query.answer()
     if not query.data or not query.data.strip():
         return
+    event_id = _get_event_id(query.data)
+    await insert_edit_event_id(event_id)
     param_name = _get_param_name(query.data)
     template = "edit_parameter_base.j2"
     if param_name == "datetime":
@@ -181,9 +187,10 @@ def _get_param_name(query_data: str) -> str:
 
 
 async def edit_event_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = update.message.from_user.id
+    event_id = await get_reg_event_id()
     param_value = update.message.text
     await update_event_parameter("name", param_value, event_id)
+    await delete_event_registration(event_id)
     await send_response(
         update,
         context,
@@ -193,9 +200,11 @@ async def edit_event_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def edit_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = update.message.from_user.id
-    param_value = update.message.text
+    event_id = await get_reg_event_id()
+    text = update.message.text
+    param_value = f"datetime('{format_datetime(text)}')"
     await update_event_parameter("datetime", param_value, event_id)
+    await delete_event_registration(event_id)
     await send_response(
         update,
         context,
@@ -205,9 +214,10 @@ async def edit_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def edit_event_place(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = update.message.from_user.id
+    event_id = await get_reg_event_id()
     param_value = update.message.text
     await update_event_parameter("place", param_value, event_id)
+    await delete_event_registration(event_id)
     await send_response(
         update,
         context,
@@ -217,9 +227,10 @@ async def edit_event_place(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def edit_event_cost(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = update.message.from_user.id
+    event_id = await get_reg_event_id()
     param_value = update.message.text
     await update_event_parameter("cost", param_value, event_id)
+    await delete_event_registration(event_id)
     await send_response(
         update,
         context,
@@ -229,9 +240,10 @@ async def edit_event_cost(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def edit_event_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = update.message.from_user.id
+    event_id = await get_reg_event_id()
     param_value = update.message.text
     await update_event_parameter("description", param_value, event_id)
+    await delete_event_registration(event_id)
     await send_response(
         update,
         context,
@@ -241,8 +253,9 @@ async def edit_event_description(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def edit_event_host(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
+    event_id = await get_reg_event_id()
     param_value = update.message.text
+    await delete_event_registration(event_id)
     await send_response(
         update,
         context,
@@ -252,6 +265,8 @@ async def edit_event_host(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    event_id = await get_reg_event_id()
+    await delete_event_registration(event_id)
     await send_response(
         update,
         context,
@@ -274,8 +289,3 @@ def get_edit_event_conversation() -> ConversationHandler:
         },
         fallbacks=[MessageHandler(filters.COMMAND, _cancel)]
     )
-
-def _format_datetime(text: str) -> str:
-    dt = datetime.strptime(text, config.DATETIME_FORMAT)
-    dt_to_sql = dt.strftime(rf"%Y-%m-%d %H:%M:%S")
-    return

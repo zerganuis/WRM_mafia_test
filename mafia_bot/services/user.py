@@ -140,3 +140,6 @@ async def delete_user(telegram_id: int):
 async def delete_user_registration(telegram_id: int):
     sql_user_reg = f"""DELETE from user_registration where telegram_id = {telegram_id}"""
     await fetch_one(sql_user_reg)
+
+def get_user_id_by_telegram_nick(telegram_nick: str) -> int:
+    return

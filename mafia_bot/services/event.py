@@ -76,6 +76,14 @@ async def _get_event_from_db(sql: LiteralString) -> Event:
         cost=event["cost"],
         description=event["description"]
     )
+
+
+async def get_max_event_id() -> int:
+    sql = f"""select max(id) as max_id from event"""
+    response = await fetch_one(sql)
+    return response['max_id']
+
+
 async def get_event(event_id: int) -> Event:
     sql = f"""{_get_events_base_sql()}
               where e.id = {event_id}"""
@@ -84,8 +92,10 @@ async def get_event(event_id: int) -> Event:
 
 
 async def update_event_parameter(param_name: str, param_value: str, event_id: int):
+    if param_name != 'datetime':
+        param_value = f"'{param_value}'"
     sql = f"""UPDATE event
-        SET {param_name} = '{param_value}'
+        SET {param_name} = {param_value}
         where id = {event_id}
     """
     await fetch_one(sql)
@@ -96,6 +106,11 @@ async def insert_event_id(event_id: int):
     ({event_id}, '', datetime('now'), '', '', '', null)"""
     sql_user_reg = f"""INSERT INTO event_registration values ({event_id})"""
     await fetch_one(sql_user)
+    await fetch_one(sql_user_reg)
+
+
+async def insert_edit_event_id(event_id: int):
+    sql_user_reg = f"""INSERT INTO event_registration values ({event_id})"""
     await fetch_one(sql_user_reg)
 
 
@@ -118,3 +133,15 @@ async def is_signed_up(user_id: int, event_id: int) -> bool:
     sql = f"""select * from statistic where user_id = {user_id} and event_id = {event_id}"""
     res = await fetch_one(sql)
     return bool(res)
+
+
+async def get_reg_event_id() -> int:
+    sql = f"""select max(id) as event_id from event_registration"""
+    response = await fetch_one(sql)
+    return response['event_id']
+
+
+def format_datetime(text: str) -> str:
+    dt = datetime.strptime(text, config.DATETIME_FORMAT)
+    dt_to_sql = dt.strftime(rf"%Y-%m-%d %H:%M:%S")
+    return dt_to_sql
