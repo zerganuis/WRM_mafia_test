@@ -8,7 +8,7 @@ from mafia_bot import config
 from mafia_bot.handlers.response import send_response
 from mafia_bot.handlers.keyboards import get_top_menu_keyboard, get_userlist_keyboard
 from mafia_bot.templates import render_template
-from mafia_bot.services.user import get_top_users
+from mafia_bot.services.user import get_top_users, validate_user, AccessLevel
 
 
 _all_periods = {
@@ -16,8 +16,8 @@ _all_periods = {
     "MONTH": "За последний месяц"
 }
 
-
-async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@validate_user(AccessLevel.USER)
+async def top(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level):
     if not update.message:
         return
     await send_response(

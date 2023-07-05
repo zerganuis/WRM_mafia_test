@@ -64,14 +64,19 @@ def get_event_profile_keyboard(callback_prefix: dict[str, str]):
         )],
         [InlineKeyboardButton(
             "Записаться", callback_data=f"{callback_prefix['sign_up']}"
-        )],
-        [InlineKeyboardButton(
-            "Редактировать", callback_data=f"{callback_prefix['edit']}"
-        )],
+        )]
+    ]
+    if "edit" in callback_prefix.keys():
+        keyboard.append(
+            [InlineKeyboardButton(
+                "Редактировать", callback_data=f"{callback_prefix['edit']}"
+            )]
+        )
+    keyboard.append(
         [InlineKeyboardButton(
             "< Назад", callback_data=f"{callback_prefix['back']}{0}"
         )]
-    ]
+    )
     return InlineKeyboardMarkup(keyboard)
 
 
@@ -145,14 +150,14 @@ def get_edit_event_profile_keyboard(callback_prefix: dict[str, str]):
 
 
 def get_view_user_profile_keyboard(callback_prefix: dict[str, str]):
-    if callback_prefix['grade'].find(config.TOP_SUBMENU_CALLBACK_PATTERN) == -1:
-        keyboard = [
-            [InlineKeyboardButton(
-                "Выставить баллы", callback_data=f"{callback_prefix['grade']}"
-            )]
-        ]
-    else:
-        keyboard = []
+    keyboard = []
+    if "grade" in callback_prefix.keys():
+        if callback_prefix['grade'].find(config.TOP_SUBMENU_CALLBACK_PATTERN) == -1:
+            keyboard = [
+                [InlineKeyboardButton(
+                    "Выставить баллы", callback_data=f"{callback_prefix['grade']}"
+                )]
+            ]
     keyboard.append(
         [InlineKeyboardButton(
             "< Назад", callback_data=f"{callback_prefix['back']}"

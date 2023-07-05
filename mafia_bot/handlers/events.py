@@ -29,10 +29,10 @@ from mafia_bot.services.event import (
     get_reg_event_id,
     delete_event_registration
 )
-from mafia_bot.services.user import get_user_by_id
+from mafia_bot.services.user import get_user_by_id, validate_user, AccessLevel
 
-
-async def eventlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@validate_user(AccessLevel.USER)
+async def eventlist(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level: AccessLevel):
     pages_with_events = list(await get_eventlist())
     if not update.message:
         return
@@ -72,11 +72,20 @@ async def eventlist_page_button(update: Update, context: ContextTypes.DEFAULT_TY
         parse_mode=telegram.constants.ParseMode.HTML,
     )
 
-async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@validate_user(AccessLevel.USER)
+async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level: AccessLevel):
     query = update.callback_query
     await query.answer()
     current_event =  await _get_current_event(query.data)
     host = await get_user_by_id(current_event.host_id)
+    callback_prefix = {
+        "back": config.EVENTLIST_CALLBACK_PATTERN,
+        "userlist": f"{config.USERLIST_CALLBACK_PATTERN}{query.data}",
+        # "edit": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}{current_event.id}",
+        "sign_up": f"{config.EVENT_SIGN_UP_CALLBACK_PATTERN}{current_event.id}"
+    }
+    if access_level == AccessLevel.ADMIN:
+        callback_prefix["edit"] = f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}{current_event.id}"
     await query.edit_message_text(
         text=render_template(
             "event.j2",
@@ -86,14 +95,7 @@ async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYP
                 "host": host
             },
         ),
-        reply_markup=get_event_profile_keyboard(
-            callback_prefix={
-                "back": config.EVENTLIST_CALLBACK_PATTERN,
-                "userlist": f"{config.USERLIST_CALLBACK_PATTERN}{query.data}",
-                "edit": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}{current_event.id}",
-                "sign_up": f"{config.EVENT_SIGN_UP_CALLBACK_PATTERN}{current_event.id}"
-            }
-        ),
+        reply_markup=get_event_profile_keyboard(callback_prefix=callback_prefix),
         parse_mode=telegram.constants.ParseMode.HTML,
     )
 

@@ -21,7 +21,9 @@ from mafia_bot.services.user import (
     insert_user_id,
     delete_user,
     delete_user_registration,
-    update_user_parameter
+    update_user_parameter,
+    validate_user,
+    AccessLevel
 )
 
 template_prefix = "reg/"
@@ -32,8 +34,15 @@ class RegistrationState(enum.Enum):
     CITY: 'RegistrationState' = 2
     PHOTO: 'RegistrationState' = 3
 
-
-async def registration(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
+@validate_user(AccessLevel.WALKER)
+async def registration(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level: AccessLevel) -> RegistrationState:
+    if access_level.value > 0:
+        await send_response(
+            update,
+            context,
+            "Вы уже зарегистрированы"
+        )
+        return ConversationHandler.END
     user = update.message.from_user
     if not update.message:
         return

@@ -26,7 +26,9 @@ from mafia_bot.services.event import (
     format_datetime
 )
 from mafia_bot.services.user import (
-    User
+    User,
+    validate_user,
+    AccessLevel
 )
 
 
@@ -41,7 +43,8 @@ class EventRegistrationState(enum.Enum):
     DESCRIPTION: 'EventRegistrationState' = 5
 
 
-async def create_event(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
+@validate_user(AccessLevel.ADMIN)
+async def create_event(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level) -> EventRegistrationState:
     if not update.message:
         return
     max_id = await get_max_event_id()

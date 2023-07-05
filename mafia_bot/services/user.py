@@ -4,13 +4,17 @@ import datetime
 from typing import LiteralString
 import enum
 
+from telegram import Update
+from telegram.ext import ContextTypes
+
 from mafia_bot import config
 from mafia_bot.db import fetch_all, fetch_one
 
 
 class AccessLevel(enum.Enum):
-    USER = 0
-    ADMIN = 1
+    WALKER: 'AccessLevel' = 0
+    USER: 'AccessLevel' = 1
+    ADMIN: 'AccessLevel' = 2
 
 
 @dataclass
@@ -22,6 +26,35 @@ class User:
     photo_link: str
     access_level: AccessLevel
     total_score: int | None = None
+
+
+def _get_access_level(access_level_id: int) -> AccessLevel:
+    match access_level_id:
+        case 0:
+            return AccessLevel.WALKER
+        case 1:
+            return AccessLevel.USER
+        case 2:
+            return AccessLevel.ADMIN
+        case _:
+            raise ValueError(f"Unsupported access_level_id value: {access_level_id}")
+
+
+def validate_user(access_level: AccessLevel = AccessLevel.WALKER):
+    def inner(handler):
+        async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
+            user_id = update.effective_user.id
+            user = await get_user_by_id(user_id)
+            user_access_level = AccessLevel.WALKER if not user else user.access_level
+            if access_level == AccessLevel.WALKER:
+                return await handler(update, context, user_access_level)
+            else:
+                userlist = await get_userlist_by_access_level(access_level)
+                if not user_id in userlist:
+                    return
+                return await handler(update, context, user_access_level)
+        return wrapper
+    return inner
 
 
 async def get_top_users(period: datetime.timedelta = 0):
@@ -41,6 +74,23 @@ async def get_top_users(period: datetime.timedelta = 0):
             limit {config.TOP_PAGE_LENGTH}"""
     users = await _get_userlist_from_db(sql)
     return users
+
+
+async def get_userlist_by_access_level(access_level: AccessLevel) -> Iterable[User]:
+    sql = f"""  SELECT
+                    telegram_id as user_id
+                FROM user
+                WHERE access_level >= {access_level.value}"""
+    user_ids_raw = await fetch_all(sql)
+    user_id_list = [user_id_raw["user_id"] for user_id_raw in user_ids_raw]
+    if access_level == AccessLevel.ADMIN:
+        sql = f"""  SELECT 
+                    telegram_id as user_id
+                    FROM admin"""
+        admin_ids_raw = await fetch_all(sql)
+        admin_id_list = [user_id_raw["user_id"] for user_id_raw in admin_ids_raw]
+        user_id_list = user_id_list + admin_id_list
+    return set(user_id_list)
 
 
 async def get_userlist() -> Iterable[User]:
@@ -93,27 +143,19 @@ async def _get_userlist_from_db(sql):
     ]
 
 
-def _get_access_level(access_level_id: int) -> AccessLevel:
-    match access_level_id:
-        case 0:
-            return AccessLevel.USER
-        case 1:
-            return AccessLevel.ADMIN
-        case _:
-            raise ValueError(f"Unsupported access_level_id value: {access_level_id}")
-
-
 async def _get_user_from_db(sql: LiteralString) -> User:
     user = await fetch_one(sql)
-    return User(
-            id=user["id"],
-            name=user["name"],
-            nickname=user["nickname"],
-            city=user["city"],
-            photo_link=user["photo_link"],
-            access_level=_get_access_level(user["access_level"]),
-            total_score=user.get("total_score", None)
-        )
+    if user:
+        return User(
+                id=user["id"],
+                name=user["name"],
+                nickname=user["nickname"],
+                city=user["city"],
+                photo_link=user["photo_link"],
+                access_level=_get_access_level(user["access_level"]),
+                total_score=user.get("total_score", None)
+            )
+    return None
 
 
 async def update_user_parameter(param_name: str, param_value: str, user_id: int):

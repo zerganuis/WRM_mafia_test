@@ -29,11 +29,14 @@ from mafia_bot.services.user import (
     edit_statistic_is_winner,
     insert_edit_statistic,
     get_edit_statistic,
-    delete_edit_statistic
+    delete_edit_statistic,
+    validate_user,
+    AccessLevel
 )
 
 
-async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@validate_user(AccessLevel.USER)
+async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level):
     user_id = update.message.from_user.id
     user = await get_user_by_id(user_id)
     if not update.message:
@@ -49,6 +52,7 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE):
             callback_prefix=f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN}{user_id}"
         )
     )
+
 
 async def user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -68,8 +72,8 @@ async def user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE
         parse_mode=telegram.constants.ParseMode.HTML,
     )
 
-
-async def view_user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@validate_user(AccessLevel.USER)
+async def view_user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level: AccessLevel):
     query = update.callback_query
     await query.answer()
     if not query.data or not query.data.strip():
@@ -77,17 +81,18 @@ async def view_user_profile_button(update: Update, context: ContextTypes.DEFAULT
     prev_callback = _get_prev_callback(query.data, config.VIEW_USER_PROFILE_CALLBACK_PATTERN)
     user_id = _get_user_id(query.data)
     user = await get_user_by_id(user_id)
+    callback_prefix = {
+        # "grade": f"{config.GRADE_CALLBACK_PATTERN}{query.data}_0",
+        "back": prev_callback
+    }
+    if access_level == AccessLevel.ADMIN:
+        callback_prefix["grade"] = f"{config.GRADE_CALLBACK_PATTERN}{query.data}_0"
     await query.edit_message_text(
         text=render_template(
             "user.j2",
             {"user": user}
         ),
-        reply_markup=get_view_user_profile_keyboard(
-            callback_prefix={
-                "grade": f"{config.GRADE_CALLBACK_PATTERN}{query.data}_0",
-                "back": prev_callback
-            }
-        ),
+        reply_markup=get_view_user_profile_keyboard(callback_prefix=callback_prefix),
         parse_mode=telegram.constants.ParseMode.HTML,
     )
 
@@ -223,7 +228,7 @@ def _get_param_name(query_data: str) -> str:
     return param_name
 
 
-async def edit_user_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def _edit_user_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     param_value = update.message.text
     await update_user_parameter("name", param_value, user_id)
@@ -235,7 +240,7 @@ async def edit_user_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
-async def edit_user_nickname(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def _edit_user_nickname(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     param_value = update.message.text
     await update_user_parameter("nickname", param_value, user_id)
@@ -247,7 +252,7 @@ async def edit_user_nickname(update: Update, context: ContextTypes.DEFAULT_TYPE)
     return ConversationHandler.END
 
 
-async def edit_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def _edit_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
     param_value = update.message.text
     await update_user_parameter("city", param_value, user_id)
@@ -259,7 +264,7 @@ async def edit_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 
-async def edit_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def _edit_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo_file = await update.message.photo[-1].get_file()
     user = update.message.from_user
     path = config.PHOTOS_DIR.joinpath(f"{user.id}.png")
@@ -291,10 +296,10 @@ def get_edit_user_conversation() -> ConversationHandler:
     return ConversationHandler(
         entry_points=[CallbackQueryHandler(edit_user_parameter_start_button, pattern=pattern)],
         states={
-            "name": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_user_name)],
-            "nickname": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_user_nickname)],
-            "city": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_user_city)],
-            "photo": [MessageHandler(filters.PHOTO, edit_user_photo)]
+            "name": [MessageHandler(filters.TEXT & ~filters.COMMAND, _edit_user_name)],
+            "nickname": [MessageHandler(filters.TEXT & ~filters.COMMAND, _edit_user_nickname)],
+            "city": [MessageHandler(filters.TEXT & ~filters.COMMAND, _edit_user_city)],
+            "photo": [MessageHandler(filters.PHOTO, _edit_user_photo)]
         },
         fallbacks=[MessageHandler(filters.COMMAND, _cancel)]
     )
