@@ -29,7 +29,7 @@ async def get_eventlist() -> Iterable[Page]:
 def _group_events_by_pages(events: Iterable[Event]) -> Iterable[Page]:
     pagelen=config.EVENTLIST_PAGE_LENGTH
     eventlist = []
-    for i in range(len(events) // pagelen + len(events) % pagelen):
+    for i in range(len(events) // pagelen + int(bool(len(events) % pagelen))):
         eventlist.append([])
         for j in range(pagelen):
             event_index = i * pagelen + j
@@ -126,6 +126,11 @@ async def delete_event_registration(event_id: int):
 
 async def sign_up(user_id: int, event_id: int):
     sql = f"""insert into statistic (user_id, event_id) values ({user_id}, {event_id})"""
+    await fetch_one(sql)
+
+
+async def sign_out(user_id: int, event_id: int):
+    sql = f"""delete from statistic where user_id = {user_id} and event_id = {event_id}"""
     await fetch_one(sql)
 
 

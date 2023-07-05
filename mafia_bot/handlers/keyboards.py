@@ -57,13 +57,36 @@ def get_eventlist_keyboard(
     )
     return InlineKeyboardMarkup(keyboard)
 
-def get_event_profile_keyboard(callback_prefix: dict[str, str]):
+def get_full_userlist_keyboard(
+        users_on_page: Iterable[Event],
+        callback_prefix: dict[str, str],
+        page_count: int,
+        current_page_index: int,
+) -> InlineKeyboardMarkup:
+    keyboard = []
+    for user in users_on_page:
+        keyboard.append(
+            [InlineKeyboardButton(
+                f"{user.name} ({user.nickname})",
+                callback_data=f"{callback_prefix['user_profile']}{user.id}"
+            )]
+        )
+    keyboard.append(
+        get_page_keyboard(
+            current_page_index=current_page_index,
+            page_count=page_count,
+            callback_prefix=callback_prefix["userlist"],
+        ).inline_keyboard[0]
+    )
+    return InlineKeyboardMarkup(keyboard)
+
+def get_event_profile_keyboard(callback_prefix: dict[str, str], is_signed_up: bool):
     keyboard = [
         [InlineKeyboardButton(
             "Игроки", callback_data=f"{callback_prefix['userlist']}"
         )],
         [InlineKeyboardButton(
-            "Записаться", callback_data=f"{callback_prefix['sign_up']}"
+            "Отменить запись" if is_signed_up else "Записаться", callback_data=f"{callback_prefix['sign_up']}"
         )]
     ]
     if "edit" in callback_prefix.keys():
@@ -152,12 +175,26 @@ def get_edit_event_profile_keyboard(callback_prefix: dict[str, str]):
 def get_view_user_profile_keyboard(callback_prefix: dict[str, str]):
     keyboard = []
     if "grade" in callback_prefix.keys():
-        if callback_prefix['grade'].find(config.TOP_SUBMENU_CALLBACK_PATTERN) == -1:
+        if (
+            callback_prefix['grade'].find(config.TOP_SUBMENU_CALLBACK_PATTERN) == -1 and
+            callback_prefix['grade'].find(config.FULL_USERLIST_CALLBACK_PATTERN) == -1
+        ):
             keyboard = [
                 [InlineKeyboardButton(
                     "Выставить баллы", callback_data=f"{callback_prefix['grade']}"
                 )]
             ]
+    if "access_admin" in callback_prefix.keys():
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    "/\\ Админ /\\", callback_data=f"{callback_prefix['access_admin']}"
+                ),
+                InlineKeyboardButton(
+                    "\\/ Пользователь \\/", callback_data=f"{callback_prefix['access_user']}"
+                )
+            ]
+        )
     keyboard.append(
         [InlineKeyboardButton(
             "< Назад", callback_data=f"{callback_prefix['back']}"

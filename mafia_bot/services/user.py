@@ -27,6 +27,7 @@ class User:
     access_level: AccessLevel
     total_score: int | None = None
 
+Page = Iterable[User]
 
 def _get_access_level(access_level_id: int) -> AccessLevel:
     match access_level_id:
@@ -40,16 +41,19 @@ def _get_access_level(access_level_id: int) -> AccessLevel:
             raise ValueError(f"Unsupported access_level_id value: {access_level_id}")
 
 
-def validate_user(access_level: AccessLevel = AccessLevel.WALKER):
+def validate_user(function_access_level: AccessLevel = AccessLevel.WALKER):
     def inner(handler):
         async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user_id = update.effective_user.id
             user = await get_user_by_id(user_id)
             user_access_level = AccessLevel.WALKER if not user else user.access_level
-            if access_level == AccessLevel.WALKER:
+            constant_admin_id_list = await get_constant_admin_list()
+            if user_id in constant_admin_id_list:
+                user_access_level = AccessLevel.ADMIN
+            if function_access_level == AccessLevel.WALKER:
                 return await handler(update, context, user_access_level)
             else:
-                userlist = await get_userlist_by_access_level(access_level)
+                userlist = await get_userlist_by_access_level(function_access_level)
                 if not user_id in userlist:
                     return
                 return await handler(update, context, user_access_level)
@@ -57,7 +61,7 @@ def validate_user(access_level: AccessLevel = AccessLevel.WALKER):
     return inner
 
 
-async def get_top_users(period: datetime.timedelta = 0):
+async def get_top_users(period: datetime.timedelta = 0, limit = config.TOP_PAGE_LENGTH):
     select_param = """iif(tt.total_score is null, 0.0, tt.total_score) as total_score"""
     sql = f"""{_get_users_base_sql(select_param)}
             LEFT JOIN (
@@ -71,7 +75,7 @@ async def get_top_users(period: datetime.timedelta = 0):
                 group by s.user_id
             ) tt on tt.user_id = id
             order by total_score desc
-            limit {config.TOP_PAGE_LENGTH}"""
+            limit {limit}"""
     users = await _get_userlist_from_db(sql)
     return users
 
@@ -84,20 +88,36 @@ async def get_userlist_by_access_level(access_level: AccessLevel) -> Iterable[Us
     user_ids_raw = await fetch_all(sql)
     user_id_list = [user_id_raw["user_id"] for user_id_raw in user_ids_raw]
     if access_level == AccessLevel.ADMIN:
-        sql = f"""  SELECT 
-                    telegram_id as user_id
-                    FROM admin"""
-        admin_ids_raw = await fetch_all(sql)
-        admin_id_list = [user_id_raw["user_id"] for user_id_raw in admin_ids_raw]
-        user_id_list = user_id_list + admin_id_list
+        constant_admin_id_list = await get_constant_admin_list()
+        user_id_list = user_id_list + constant_admin_id_list
     return set(user_id_list)
 
+async def get_constant_admin_list():
+    sql = f"""  SELECT 
+                    telegram_id as user_id
+                FROM admin"""
+    admin_ids_raw = await fetch_all(sql)
+    admin_id_list = [user_id_raw["user_id"] for user_id_raw in admin_ids_raw]
+    return admin_id_list
 
-async def get_userlist() -> Iterable[User]:
+
+async def get_userlist() -> Iterable[Page]:
     sql = f"""{_get_users_base_sql()}"""
     users = await _get_userlist_from_db(sql)
-    return users
+    return _group_users_by_pages(users)
 
+
+def _group_users_by_pages(users: Iterable[User]) -> Iterable[Page]:
+    pagelen=config.USERLIST_PAGE_LENGTH
+    userlist = []
+    for i in range(len(users) // pagelen + int(bool(len(users) % pagelen))):
+        userlist.append([])
+        for j in range(pagelen):
+            user_index = i * pagelen + j
+            if user_index >= len(users):
+                break
+            userlist[-1].append(users[user_index])
+    return userlist
 
 async def get_userlist_by_event_id(event_id: int) -> Iterable[User]:
     sql = f"""{_get_users_base_sql()[:-11]}
@@ -165,6 +185,12 @@ async def update_user_parameter(param_name: str, param_value: str, user_id: int)
     """
     await fetch_one(sql)
 
+async def update_user_access_level(access_level: int, user_id: int):
+    sql = f"""UPDATE user
+        SET access_level = {access_level}
+        where telegram_id = {user_id}
+    """
+    await fetch_one(sql)
 
 async def insert_user_id(telegram_id: int):
     sql_user = f"""INSERT INTO user values

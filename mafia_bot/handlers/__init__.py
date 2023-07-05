@@ -25,7 +25,8 @@ from .user import (
     delete,
     get_edit_user_score_conversation,
     grade_user_button,
-    is_winner_user_button
+    is_winner_user_button,
+    change_access_button
 )
 from .rules import (
     rules,
@@ -35,6 +36,8 @@ from .rules import (
 )
 from .reg import registration, get_registration_conversation
 from .event_reg import create_event, get_regevent_conversation
+from .fulluserlist import full_userlist, full_userlist_page_button
+
 
 __all__ = [
     "start",
@@ -68,4 +71,7 @@ __all__ = [
     "get_edit_user_score_conversation",
     "grade_user_button",
     "is_winner_user_button",
+    "change_access_button",
+    "full_userlist",
+    "full_userlist_page_button",
 ]

@@ -31,7 +31,8 @@ from mafia_bot.services.user import (
     get_edit_statistic,
     delete_edit_statistic,
     validate_user,
-    AccessLevel
+    AccessLevel,
+    update_user_access_level
 )
 
 
@@ -87,6 +88,8 @@ async def view_user_profile_button(update: Update, context: ContextTypes.DEFAULT
     }
     if access_level == AccessLevel.ADMIN:
         callback_prefix["grade"] = f"{config.GRADE_CALLBACK_PATTERN}{query.data}_0"
+        callback_prefix["access_admin"] = f"{config.CHANGE_ACCESS_CALLBACK_PATTERN}{user_id}_2"
+        callback_prefix["access_user"] = f"{config.CHANGE_ACCESS_CALLBACK_PATTERN}{user_id}_1"
     await query.edit_message_text(
         text=render_template(
             "user.j2",
@@ -95,6 +98,16 @@ async def view_user_profile_button(update: Update, context: ContextTypes.DEFAULT
         reply_markup=get_view_user_profile_keyboard(callback_prefix=callback_prefix),
         parse_mode=telegram.constants.ParseMode.HTML,
     )
+
+
+async def change_access_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    if not query.data or not query.data.strip():
+        return
+    access_level = _get_user_id(query.data)
+    user_id = _get_user_id(query.data[:-2])
+    await update_user_access_level(access_level, user_id)
 
 
 async def grade_user_button(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -27,7 +27,8 @@ from mafia_bot.services.event import (
     format_datetime,
     insert_edit_event_id,
     get_reg_event_id,
-    delete_event_registration
+    delete_event_registration,
+    sign_out
 )
 from mafia_bot.services.user import get_user_by_id, validate_user, AccessLevel
 
@@ -86,6 +87,8 @@ async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYP
     }
     if access_level == AccessLevel.ADMIN:
         callback_prefix["edit"] = f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}{current_event.id}"
+    user_id = query.from_user.id
+    isSignedUp_ = await is_signed_up(user_id, current_event.id)
     await query.edit_message_text(
         text=render_template(
             "event.j2",
@@ -95,7 +98,10 @@ async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYP
                 "host": host
             },
         ),
-        reply_markup=get_event_profile_keyboard(callback_prefix=callback_prefix),
+        reply_markup=get_event_profile_keyboard(
+            callback_prefix=callback_prefix,
+            is_signed_up=isSignedUp_
+        ),
         parse_mode=telegram.constants.ParseMode.HTML,
     )
 
@@ -108,6 +114,8 @@ async def sign_up_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     isSignedUp_ = await is_signed_up(user_id, current_event.id)
     if not isSignedUp_:
         await sign_up(user_id, current_event.id)
+    else:
+        await sign_out(user_id, current_event.id)
     await send_response(
         update,
         context,
