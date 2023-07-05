@@ -11,21 +11,36 @@ template_prefix = "rules/"
 
 _all_roletypes = {
     "classic": "Классическая (спортивная) мафия",
-    "city": "Городская мафия"
+    "city": "Городская мафия",
+    "role": "Ролевая мафия"
 }
 
 _all_roles = {
     "classic": {
         "mafia": "Мафия",
         "peaceful": "Мирный житель",
-        "sheriff": "Шериф",
+        "comissar": "Комиссар",
         "don": "Дон"
     },
     "city": {
-        "mafia": "Мафозник",
-        "peaceful": "Мирный",
-        "sheriff": "Комиссар",
-        "don": "Дон-дон"
+        "mafia": "Мафия",
+        "peaceful": "Мирный житель",
+        "comissar": "Комиссар",
+        "maniac": "Маньяк",
+        "doctor": "Доктор",
+        "model": "Модель"
+    },
+    "role": {
+        "mafia": "Мафия",
+        "peaceful": "Мирный житель",
+        "comissar": "Комиссар",
+        "maniac": "Маньяк",
+        "doctor": "Доктор",
+        "model": "Модель",
+        "jailer": "Тюремщик",
+        "sapper": "Сапер",
+        "bodyguard": "Телохранитель",
+        "double": "Двойник"
     }
 }
 
