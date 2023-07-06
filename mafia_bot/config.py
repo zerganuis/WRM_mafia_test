@@ -12,6 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent
 SQLITE_DB_FILE = BASE_DIR.joinpath('db.sqlite3')
 TEMPLATES_DIR = BASE_DIR.joinpath('templates')
 PHOTOS_DIR = BASE_DIR.joinpath('photos')
+BASE_PHOTO = PHOTOS_DIR.joinpath(f"base.jpg")
 
 DATETIME_FORMAT = rf"%d.%m.%Y %H:%M"
 
