@@ -175,7 +175,8 @@ async def edit_event_parameter_start_button(update: Update, context: ContextType
     if not query.data or not query.data.strip():
         return
     event_id = _get_event_id(query.data)
-    await insert_edit_event_id(event_id)
+    user_id = update.effective_user.id
+    await insert_edit_event_id(user_id, event_id)
     param_name = _get_param_name(query.data)
     template = "edit_parameter_base.j2"
     if param_name == "datetime":
@@ -197,7 +198,8 @@ def _get_param_name(query_data: str) -> str:
 
 
 async def edit_event_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     param_value = update.message.text
     await update_event_parameter("name", param_value, event_id)
     await delete_event_registration(event_id)
@@ -210,7 +212,8 @@ async def edit_event_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def edit_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     text = update.message.text
     param_value = f"datetime('{format_datetime(text)}')"
     await update_event_parameter("datetime", param_value, event_id)
@@ -224,7 +227,8 @@ async def edit_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def edit_event_place(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     param_value = update.message.text
     await update_event_parameter("place", param_value, event_id)
     await delete_event_registration(event_id)
@@ -237,7 +241,8 @@ async def edit_event_place(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def edit_event_cost(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     param_value = update.message.text
     await update_event_parameter("cost", param_value, event_id)
     await delete_event_registration(event_id)
@@ -250,7 +255,8 @@ async def edit_event_cost(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def edit_event_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     param_value = update.message.text
     await update_event_parameter("description", param_value, event_id)
     await delete_event_registration(event_id)
@@ -263,7 +269,8 @@ async def edit_event_description(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def edit_event_host(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     param_value = update.message.text
     await delete_event_registration(event_id)
     await send_response(
@@ -275,7 +282,8 @@ async def edit_event_host(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     await delete_event_registration(event_id)
     await send_response(
         update,

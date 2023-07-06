@@ -323,21 +323,23 @@ async def delete(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _edit_user_score_start_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    editor_id = update.effective_user.id
     query = update.callback_query
     await query.answer()
     if not query.data or not query.data.strip():
         return
     user_id = _get_user_id(query.data)
     event_id = _get_event_id(query.data[:-len(f"_{user_id}")])
-    await insert_edit_statistic(user_id, event_id)
+    await insert_edit_statistic(editor_id, user_id, event_id)
     await send_response(update, context, render_template("score_edit.j2"))
     return 1
 
 async def _edit_user_score(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    ids = await get_edit_statistic()
+    editor_id = update.effective_user.id
+    ids = await get_edit_statistic(editor_id)
     param_value = int(update.message.text.strip())
     await edit_statistic_score(ids['user_id'], ids['event_id'], param_value)
-    await delete_edit_statistic()
+    await delete_edit_statistic(editor_id)
     await send_response(update, context, render_template("done.j2"))
     return ConversationHandler.END
 

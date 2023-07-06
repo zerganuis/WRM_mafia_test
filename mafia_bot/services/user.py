@@ -222,17 +222,17 @@ async def edit_statistic_score(user_id: int, event_id: int, score: int):
     await fetch_one(sql)
 
 
-async def insert_edit_statistic(user_id: int, event_id: int):
-    sql = f"""INSERT INTO statistic_edit values ({user_id}, {event_id})"""
+async def insert_edit_statistic(editor_id: int, user_id: int, event_id: int):
+    sql = f"""INSERT INTO statistic_edit values ({editor_id}, {user_id}, {event_id})"""
     await fetch_one(sql)
 
 
-async def delete_edit_statistic():
-    sql = f"""DELETE from statistic_edit"""
+async def delete_edit_statistic(editor_id: int):
+    sql = f"""DELETE from statistic_edit where editor_id = {editor_id}"""
     await fetch_one(sql)
 
-async def get_edit_statistic() -> dict[str, int]:
-    sql = f"""select * from statistic_edit limit 1"""
+async def get_edit_statistic(editor_id: int) -> dict[str, int]:
+    sql = f"""select * from statistic_edit where editor_id = {editor_id}"""
     response = await fetch_one(sql)
     return response
 

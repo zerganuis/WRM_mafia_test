@@ -101,16 +101,16 @@ async def update_event_parameter(param_name: str, param_value: str, event_id: in
     await fetch_one(sql)
 
 
-async def insert_event_id(event_id: int):
+async def insert_event_id(user_id: int, event_id: int):
     sql_user = f"""INSERT INTO event values
     ({event_id}, '', datetime('now'), '', '', '', null)"""
-    sql_user_reg = f"""INSERT INTO event_registration values ({event_id})"""
+    sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
     await fetch_one(sql_user)
     await fetch_one(sql_user_reg)
 
 
-async def insert_edit_event_id(event_id: int):
-    sql_user_reg = f"""INSERT INTO event_registration values ({event_id})"""
+async def insert_edit_event_id(user_id: int, event_id: int):
+    sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
     await fetch_one(sql_user_reg)
 
 
@@ -120,7 +120,7 @@ async def delete_event(event_id: int):
 
 
 async def delete_event_registration(event_id: int):
-    sql_user_reg = f"""DELETE from event_registration where id = {event_id}"""
+    sql_user_reg = f"""DELETE from event_registration where event_id = {event_id}"""
     await fetch_one(sql_user_reg)
 
 
@@ -140,8 +140,8 @@ async def is_signed_up(user_id: int, event_id: int) -> bool:
     return bool(res)
 
 
-async def get_reg_event_id() -> int:
-    sql = f"""select max(id) as event_id from event_registration"""
+async def get_reg_event_id(user_id: int) -> int:
+    sql = f"""select event_id from event_registration where user_id = {user_id}"""
     response = await fetch_one(sql)
     return response['event_id']
 

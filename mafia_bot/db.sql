@@ -39,10 +39,14 @@ create table user_registration(
 );
 
 create table event_registration(
-    id bigint primary key
+    user_id bigint not null,
+    event_id int not null,
+    foreign key (event_id) references event(id) ON DELETE CASCADE,
+    foreign key (user_id) references user(telegram_id) ON DELETE CASCADE
 );
 
 create table statistic_edit(
+    editor_id int not null,
     user_id int not null,
     event_id int not null
 );

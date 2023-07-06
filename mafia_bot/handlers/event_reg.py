@@ -48,7 +48,8 @@ async def create_event(update: Update, context: ContextTypes.DEFAULT_TYPE, acces
     if not update.message:
         return
     max_id = await get_max_event_id()
-    await insert_event_id(max_id + 1)
+    user_id = update.effective_user.id
+    await insert_event_id(user_id, max_id + 1)
     await send_response(
         update,
         context,
@@ -60,7 +61,8 @@ async def create_event(update: Update, context: ContextTypes.DEFAULT_TYPE, acces
 
 
 async def _get_event_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     text = update.message.text
     await update_event_parameter(
         "name",
@@ -77,7 +79,8 @@ async def _get_event_name(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     return EventRegistrationState.DATETIME
 
 async def _get_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     text = update.message.text
     await update_event_parameter(
         "datetime",
@@ -94,7 +97,8 @@ async def _get_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE
     return EventRegistrationState.PLACE
 
 async def _get_event_place(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     text = update.message.text
     await update_event_parameter(
         "place",
@@ -112,7 +116,8 @@ async def _get_event_place(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def _get_event_host(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     text = update.message.text
     await update_event_parameter(
         "host_id",
@@ -130,7 +135,8 @@ async def _get_event_host(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def _get_event_cost(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     text = update.message.text
     await update_event_parameter(
         "cost",
@@ -148,7 +154,8 @@ async def _get_event_cost(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 
 async def _get_event_description(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     text = update.message.text
     await update_event_parameter(
         "description",
@@ -167,7 +174,8 @@ async def _get_event_description(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def _cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    event_id = await get_reg_event_id()
+    user_id = update.effective_user.id
+    event_id = await get_reg_event_id(user_id)
     await delete_event(event_id)
     await delete_event_registration(event_id)
     await send_response(
