@@ -3,7 +3,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from mafia_bot import config
-from mafia_bot.handlers.response import send_response
+from mafia_bot.handlers.response import send_response, send_response_photo
 from mafia_bot.handlers.keyboards import get_rules_keyboard, get_role_keyboard, get_ruletype_keyboard
 from mafia_bot.templates import render_template
 
@@ -48,7 +48,7 @@ _all_roles = {
 async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message:
         return
-    await send_response(
+    await send_response_photo(
         update,
         context,
         render_template(
@@ -66,8 +66,8 @@ async def rules_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     if not query.data or not query.data.strip():
         return
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             f"{template_prefix}rules_menu.j2"
         ),
         reply_markup=get_rules_keyboard(
@@ -84,8 +84,8 @@ async def ruletype_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not query.data or not query.data.strip():
         return
     ruletype = _get_ruletype(query.data)
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             f"{template_prefix}{ruletype}_rules.j2"
         ),
         reply_markup=get_ruletype_keyboard(
@@ -106,8 +106,8 @@ async def role_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     role = _get_role(query.data)
     prev_callback = _get_prev_callback(query.data, config.ROLE_CALLBACK_PATTERN)
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             f"{template_prefix}{role}.j2"
         ),
         reply_markup=get_role_keyboard(

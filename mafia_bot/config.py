@@ -13,6 +13,11 @@ SQLITE_DB_FILE = BASE_DIR.joinpath('db.sqlite3')
 TEMPLATES_DIR = BASE_DIR.joinpath('templates')
 PHOTOS_DIR = BASE_DIR.joinpath('photos')
 BASE_PHOTO = PHOTOS_DIR.joinpath(f"base.jpg")
+EVENT_PICTURES = [
+    PHOTOS_DIR.joinpath("event_1"),
+    PHOTOS_DIR.joinpath("event_2"),
+    PHOTOS_DIR.joinpath("event_3"),
+]
 
 DATETIME_FORMAT = rf"%d.%m.%Y %H:%M"
 

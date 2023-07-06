@@ -1,7 +1,8 @@
+import random
 from datetime import datetime
 
 import telegram
-from telegram import Update, InlineKeyboardMarkup
+from telegram import Update, InputMediaPhoto
 from telegram.ext import (
     ContextTypes,
     ConversationHandler,
@@ -11,7 +12,7 @@ from telegram.ext import (
 )
 
 from mafia_bot import config
-from mafia_bot.handlers.response import send_response
+from mafia_bot.handlers.response import send_response, send_response_photo
 from mafia_bot.handlers.keyboards import (
     get_eventlist_keyboard,
     get_event_profile_keyboard,
@@ -37,7 +38,7 @@ async def eventlist(update: Update, context: ContextTypes.DEFAULT_TYPE, access_l
     pages_with_events = list(await get_eventlist())
     if not update.message:
         return
-    await send_response(
+    await send_response_photo(
         update,
         context,
         render_template("eventlist.j2"),
@@ -59,8 +60,26 @@ async def eventlist_page_button(update: Update, context: ContextTypes.DEFAULT_TY
         return
     pages_with_events = list(await get_eventlist())
     current_page_index = _get_current_page_index(query.data)
-    await query.edit_message_text(
-        text=render_template("eventlist.j2"),
+    if current_page_index == 0:
+        with open(config.BASE_PHOTO, 'rb') as photo:
+            await query.edit_message_media(
+                InputMediaPhoto(
+                    media=photo,
+                    caption=render_template("eventlist.j2"),
+                    parse_mode=telegram.constants.ParseMode.HTML,
+                ),
+                reply_markup=get_eventlist_keyboard(
+                    pages_with_events[current_page_index],
+                    callback_prefix={
+                        "eventlist": config.EVENTLIST_CALLBACK_PATTERN,
+                        "event_profile": config.EVENT_PROFILE_CALLBACK_PATTERN
+                    },
+                    page_count=len(pages_with_events),
+                    current_page_index=current_page_index,
+                )
+            )
+    await query.edit_message_caption(
+        caption=render_template("eventlist.j2"),
         reply_markup=get_eventlist_keyboard(
             pages_with_events[current_page_index],
             callback_prefix={
@@ -82,28 +101,47 @@ async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYP
     callback_prefix = {
         "back": config.EVENTLIST_CALLBACK_PATTERN,
         "userlist": f"{config.USERLIST_CALLBACK_PATTERN}{query.data}",
-        # "edit": f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}{current_event.id}",
         "sign_up": f"{config.EVENT_SIGN_UP_CALLBACK_PATTERN}{current_event.id}"
     }
     if access_level == AccessLevel.ADMIN:
         callback_prefix["edit"] = f"{config.EDIT_EVENT_PROFILE_CALLBACK_PATTERN}{current_event.id}"
     user_id = query.from_user.id
     isSignedUp_ = await is_signed_up(user_id, current_event.id)
-    await query.edit_message_text(
-        text=render_template(
-            "event.j2",
-            {
-                "event": current_event,
-                "datetime": current_event.datetime.strftime(config.DATETIME_FORMAT),
-                "host": host
-            },
-        ),
-        reply_markup=get_event_profile_keyboard(
-            callback_prefix=callback_prefix,
-            is_signed_up=isSignedUp_
-        ),
-        parse_mode=telegram.constants.ParseMode.HTML,
-    )
+
+    with open(random.choice(config.EVENT_PICTURES), 'rb') as photo:
+        await query.edit_message_media(
+            InputMediaPhoto(
+                media=photo,
+                caption=render_template(
+                    "event.j2",
+                    {
+                        "event": current_event,
+                        "datetime": current_event.datetime.strftime(config.DATETIME_FORMAT),
+                        "host": host
+                    },
+                ),
+                parse_mode=telegram.constants.ParseMode.HTML,
+            ),
+            reply_markup=get_event_profile_keyboard(
+                callback_prefix=callback_prefix,
+                is_signed_up=isSignedUp_
+            )
+        )
+    # await query.edit_message_text(
+    #     text=render_template(
+    #         "event.j2",
+    #         {
+    #             "event": current_event,
+    #             "datetime": current_event.datetime.strftime(config.DATETIME_FORMAT),
+    #             "host": host
+    #         },
+    #     ),
+    #     reply_markup=get_event_profile_keyboard(
+    #         callback_prefix=callback_prefix,
+    #         is_signed_up=isSignedUp_
+    #     ),
+    #     parse_mode=telegram.constants.ParseMode.HTML,
+    # )
 
 
 async def sign_up_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -129,7 +167,7 @@ async def sign_up_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _get_current_event(query_data: str):
-    pattern_prefix_length = query_data.rfind("_") + 1  # len(config.EVENT_PROFILE_CALLBACK_PATTERN)
+    pattern_prefix_length = query_data.rfind("_") + 1
     event_id = int(query_data[pattern_prefix_length:])
     return await get_event(event_id)
 
@@ -145,8 +183,8 @@ async def edit_event_profile_button(update: Update, context: ContextTypes.DEFAUL
     if not query.data or not query.data.strip():
         return
     event_id = _get_event_id(query.data)
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             "edit_profile_menu.j2"
         ),
         reply_markup=get_edit_event_profile_keyboard(
@@ -181,8 +219,8 @@ async def edit_event_parameter_start_button(update: Update, context: ContextType
     template = "edit_parameter_base.j2"
     if param_name == "datetime":
         template = "edit_parameter_datetime.j2"
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             template
         ),
         parse_mode=telegram.constants.ParseMode.HTML,

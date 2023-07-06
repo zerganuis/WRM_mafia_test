@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import LiteralString
 
 from mafia_bot import config
-from mafia_bot.db import fetch_all, fetch_one
+from mafia_bot.db import fetch_all, fetch_one, execute
 
 @dataclass
 class Event:
@@ -98,40 +98,40 @@ async def update_event_parameter(param_name: str, param_value: str, event_id: in
         SET {param_name} = {param_value}
         where id = {event_id}
     """
-    await fetch_one(sql)
+    await execute(sql)
 
 
 async def insert_event_id(user_id: int, event_id: int):
     sql_user = f"""INSERT INTO event values
     ({event_id}, '', datetime('now'), '', '', '', null)"""
     sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
-    await fetch_one(sql_user)
-    await fetch_one(sql_user_reg)
+    await execute(sql_user)
+    await execute(sql_user_reg)
 
 
 async def insert_edit_event_id(user_id: int, event_id: int):
     sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
-    await fetch_one(sql_user_reg)
+    await execute(sql_user_reg)
 
 
 async def delete_event(event_id: int):
     sql_user = f"""DELETE from event where id = {event_id}"""
-    await fetch_one(sql_user)
+    await execute(sql_user)
 
 
 async def delete_event_registration(event_id: int):
     sql_user_reg = f"""DELETE from event_registration where event_id = {event_id}"""
-    await fetch_one(sql_user_reg)
+    await execute(sql_user_reg)
 
 
 async def sign_up(user_id: int, event_id: int):
     sql = f"""insert into statistic (user_id, event_id) values ({user_id}, {event_id})"""
-    await fetch_one(sql)
+    await execute(sql)
 
 
 async def sign_out(user_id: int, event_id: int):
     sql = f"""delete from statistic where user_id = {user_id} and event_id = {event_id}"""
-    await fetch_one(sql)
+    await execute(sql)
 
 
 async def is_signed_up(user_id: int, event_id: int) -> bool:

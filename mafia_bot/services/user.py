@@ -8,7 +8,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from mafia_bot import config
-from mafia_bot.db import fetch_all, fetch_one
+from mafia_bot.db import fetch_all, fetch_one, execute
 
 
 class AccessLevel(enum.Enum):
@@ -183,53 +183,53 @@ async def update_user_parameter(param_name: str, param_value: str, user_id: int)
         SET {param_name} = '{param_value}'
         where telegram_id = {user_id}
     """
-    await fetch_one(sql)
+    await execute(sql)
 
 async def update_user_access_level(access_level: int, user_id: int):
     sql = f"""UPDATE user
         SET access_level = {access_level}
         where telegram_id = {user_id}
     """
-    await fetch_one(sql)
+    await execute(sql)
 
 async def insert_user_id(telegram_id: int):
     sql_user = f"""INSERT INTO user values
     ({telegram_id}, '', '', '', '', 1)"""
     sql_user_reg = f"""INSERT INTO user_registration values ({telegram_id})"""
-    await fetch_one(sql_user)
-    await fetch_one(sql_user_reg)
+    await execute(sql_user)
+    await execute(sql_user_reg)
 
 
 async def delete_user(telegram_id: int):
-    sql_user = f"""DELETE from user where telegram_id = {telegram_id}"""
-    await fetch_one(sql_user)
+    sql_user = f"""DELETE from user where telegram_id = {telegram_id};"""
+    await execute(sql_user)
 
 
 async def delete_user_registration(telegram_id: int):
     sql_user_reg = f"""DELETE from user_registration where telegram_id = {telegram_id}"""
-    await fetch_one(sql_user_reg)
+    await execute(sql_user_reg)
 
 async def edit_statistic_is_winner(user_id: int, event_id: int, isWinner: bool):
     sql = f"""  update statistic
                 set isWinner = {'true' if isWinner else 'false'}
                 where user_id = {user_id} and event_id = {event_id}"""
-    await fetch_one(sql)
+    await execute(sql)
 
 async def edit_statistic_score(user_id: int, event_id: int, score: int):
     sql = f"""  update statistic
                 set score = {score}
                 where user_id = {user_id} and event_id = {event_id}"""
-    await fetch_one(sql)
+    await execute(sql)
 
 
 async def insert_edit_statistic(editor_id: int, user_id: int, event_id: int):
     sql = f"""INSERT INTO statistic_edit values ({editor_id}, {user_id}, {event_id})"""
-    await fetch_one(sql)
+    await execute(sql)
 
 
 async def delete_edit_statistic(editor_id: int):
     sql = f"""DELETE from statistic_edit where editor_id = {editor_id}"""
-    await fetch_one(sql)
+    await execute(sql)
 
 async def get_edit_statistic(editor_id: int) -> dict[str, int]:
     sql = f"""select * from statistic_edit where editor_id = {editor_id}"""

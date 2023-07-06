@@ -21,13 +21,13 @@ create table event(
 );
 
 create table statistic(
-	user_id int not null,
-    event_id int not null,
+	user_id int not null references user(telegram_id) ON DELETE CASCADE,
+    event_id int not null references event(id) ON DELETE CASCADE,
     score int,
-    isWinner boolean,
-    foreign key (event_id) references event(id) ON DELETE CASCADE,
-    foreign key (user_id) references user(telegram_id) ON DELETE CASCADE
+    isWinner boolean
 );
+-- foreign key (user_id) references user(telegram_id) ON DELETE CASCADE,
+-- foreign key (event_id) references event(id) ON DELETE CASCADE
 
 create table admin(
     telegram_id bigint primary key,
@@ -52,10 +52,10 @@ create table statistic_edit(
 );
 
 insert into user values
-(1, 'Универсальный ведущий', 'Водила', 'Москва', '/photos/1.png', 1),
-(2, 'Первый игрок', 'Ник1', 'Москва', '/photos/2.png', 0),
-(3, 'Второй игрок', 'Ник2', 'Москва', '/photos/3.png', 0),
-(4, 'Третий игрок', 'Ник3', 'Москва', '/photos/4.png', 0);
+(1, 'Универсальный ведущий', 'Водила', 'Москва', '', 1),
+(2, 'Первый игрок', 'Ник1', 'Москва', '', 0),
+(3, 'Второй игрок', 'Ник2', 'Москва', '', 0),
+(4, 'Третий игрок', 'Ник3', 'Москва', '', 0);
 
 insert into event (name, datetime, place, cost, description, host_id) values
 ('Первое мероприятие', datetime('now', '+1 month'), 'За гаражами', '1200 рублей', '', 1),

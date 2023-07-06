@@ -1,11 +1,11 @@
 import telegram
-from telegram import Update
+from telegram import Update, InputMediaPhoto
 from telegram.ext import (
     ContextTypes
 )
 
 from mafia_bot import config
-from mafia_bot.handlers.response import send_response
+from mafia_bot.handlers.response import send_response, send_response_photo
 from mafia_bot.handlers.keyboards import (
     get_full_userlist_keyboard
 )
@@ -22,7 +22,7 @@ async def full_userlist(update: Update, context: ContextTypes.DEFAULT_TYPE, acce
     pages_with_users = list(await get_userlist())
     if not update.message:
         return
-    await send_response(
+    await send_response_photo(
         update,
         context,
         render_template("full_userlist.j2"),
@@ -44,19 +44,36 @@ async def full_userlist_page_button(update: Update, context: ContextTypes.DEFAUL
         return
     pages_with_users = list(await get_userlist())
     current_page_index = _get_current_page_index(query.data)
-    await query.edit_message_text(
-        text=render_template("full_userlist.j2"),
-        reply_markup=get_full_userlist_keyboard(
-            pages_with_users[current_page_index],
-            callback_prefix={
-                "userlist": config.FULL_USERLIST_CALLBACK_PATTERN,
-                "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{config.FULL_USERLIST_CALLBACK_PATTERN}0_0"
-            },
-            page_count=len(pages_with_users),
-            current_page_index=current_page_index,
-        ),
-        parse_mode=telegram.constants.ParseMode.HTML,
-    )
+    with open(config.BASE_PHOTO, 'rb') as photo:
+        await query.edit_message_media(
+            InputMediaPhoto(
+                media=photo,
+                caption=render_template("full_userlist.j2"),
+                parse_mode=telegram.constants.ParseMode.HTML,
+            ),
+            reply_markup=get_full_userlist_keyboard(
+                pages_with_users[current_page_index],
+                callback_prefix={
+                    "userlist": config.FULL_USERLIST_CALLBACK_PATTERN,
+                    "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{config.FULL_USERLIST_CALLBACK_PATTERN}0_0"
+                },
+                page_count=len(pages_with_users),
+                current_page_index=current_page_index,
+            )
+        )
+    # await query.edit_message_caption(
+    #     caption=render_template("full_userlist.j2"),
+    #     reply_markup=get_full_userlist_keyboard(
+    #         pages_with_users[current_page_index],
+    #         callback_prefix={
+    #             "userlist": config.FULL_USERLIST_CALLBACK_PATTERN,
+    #             "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{config.FULL_USERLIST_CALLBACK_PATTERN}0_0"
+    #         },
+    #         page_count=len(pages_with_users),
+    #         current_page_index=current_page_index,
+    #     ),
+    #     parse_mode=telegram.constants.ParseMode.HTML,
+    # )
 
 
 def _get_current_page_index(query_data) -> int:

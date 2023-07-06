@@ -1,3 +1,4 @@
+import random
 import datetime
 
 import telegram
@@ -118,21 +119,51 @@ async def view_user_profile_button(update: Update, context: ContextTypes.DEFAULT
     user_id = _get_user_id(query.data)
     user = await get_user_by_id(user_id)
     callback_prefix = {
-        # "grade": f"{config.GRADE_CALLBACK_PATTERN}{query.data}_0",
         "back": prev_callback
     }
     if access_level == AccessLevel.ADMIN:
         callback_prefix["grade"] = f"{config.GRADE_CALLBACK_PATTERN}{query.data}_0"
         callback_prefix["access_admin"] = f"{config.CHANGE_ACCESS_CALLBACK_PATTERN}{user_id}_2"
         callback_prefix["access_user"] = f"{config.CHANGE_ACCESS_CALLBACK_PATTERN}{user_id}_1"
-    await query.edit_message_text(
-        text=render_template(
-            "user.j2",
-            {"user": user}
-        ),
-        reply_markup=get_view_user_profile_keyboard(callback_prefix=callback_prefix),
-        parse_mode=telegram.constants.ParseMode.HTML,
-    )
+    if user.photo_link:
+        path_to_photo = config.PHOTOS_DIR.joinpath(f"{user_id}")
+    else:
+        path_to_photo = config.PHOTOS_DIR.joinpath("base_user_profile_photo.jpg")
+    with open(path_to_photo, 'rb') as photo:
+        await query.edit_message_media(
+            InputMediaPhoto(
+                media=photo,
+                caption=render_template(
+                    "user.j2",
+                    {"user": user}
+                ),
+                parse_mode=telegram.constants.ParseMode.HTML,
+            ),
+            reply_markup=get_view_user_profile_keyboard(callback_prefix=callback_prefix)
+        )
+    # if user.photo_link:
+    #     path_to_photo = config.PHOTOS_DIR.joinpath(f"{user_id}")
+    # else:
+    #     path_to_photo = config.PHOTOS_DIR.joinpath("base_user_profile_photo.jpg")
+    # await send_response_photo(
+    #     update,
+    #     context,
+    #     render_template(
+    #         "user.j2",
+    #         {"user": user}
+    #     ),
+    #     keyboard,
+    #     path_to_photo
+    # )
+# old
+    # await query.edit_message_text(
+    #     text=render_template(
+    #         "user.j2",
+    #         {"user": user}
+    #     ),
+    #     reply_markup=get_view_user_profile_keyboard(callback_prefix=callback_prefix),
+    #     parse_mode=telegram.constants.ParseMode.HTML,
+    # )
 
 
 async def change_access_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -160,8 +191,8 @@ async def grade_user_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"{event_id}_",
         f"{user_id}"
     ))
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             "grade_user.j2",
             {"user": user}
         ),
@@ -212,20 +243,36 @@ async def userlist_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prev_callback = _get_prev_callback(query.data, config.USERLIST_CALLBACK_PATTERN)
     event_id = _get_event_id(query.data)
     users = list(await get_userlist_by_event_id(event_id))
-    await query.edit_message_text(
-        text=render_template(
-            "userlist.j2"
-        ),
-        reply_markup=get_userlist_keyboard(
-            users,
-            {
-                "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
-                "back": f"{prev_callback}_{event_id}"
-            },
-            lambda user: f"{user.nickname}"
-        ),
-        parse_mode=telegram.constants.ParseMode.HTML,
-    )
+    with open(random.choice(config.EVENT_PICTURES), 'rb') as photo:
+        await query.edit_message_media(
+            InputMediaPhoto(
+                media=photo,
+                caption=render_template("userlist.j2"),
+                parse_mode=telegram.constants.ParseMode.HTML,
+            ),
+            reply_markup=get_userlist_keyboard(
+                users,
+                {
+                    "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
+                    "back": f"{prev_callback}_{event_id}"
+                },
+                lambda user: f"{user.nickname}"
+            )
+        )
+    # await query.edit_message_caption(
+    #     caption=render_template(
+    #         "userlist.j2"
+    #     ),
+    #     reply_markup=get_userlist_keyboard(
+    #         users,
+    #         {
+    #             "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
+    #             "back": f"{prev_callback}_{event_id}"
+    #         },
+    #         lambda user: f"{user.nickname}"
+    #     ),
+    #     parse_mode=telegram.constants.ParseMode.HTML,
+    # )
 
 
 async def edit_user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
