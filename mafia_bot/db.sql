@@ -1,3 +1,5 @@
+PRAGMA foreign_keys = ON;
+
 create table user(
 	telegram_id bigint primary key,
     name varchar(64) not null,
@@ -8,7 +10,7 @@ create table user(
 );
 
 create table event(
-	id integer primary key AUTOINCREMENT,
+	id integer primary key,
     name varchar(64) not null,
     datetime datetime not null,
     place text not null,
@@ -53,9 +55,9 @@ insert into user values
 
 insert into event (name, datetime, place, cost, description, host_id) values
 ('Первое мероприятие', datetime('now', '+1 month'), 'За гаражами', '1200 рублей', '', 1),
-('Второе мероприятие', datetime('now', '+1 month'), 'В лесу', '325 рублей/час', '', 1),
-('Третье мероприятие', datetime('now', '+1 month'), 'Не знамо где', '400 рублей за вечер', '', 1),
-('Четвертое мероприятие', datetime('now', '+1 month'), 'Прям тут', '$900', '', 1);
+('Второе мероприятие', datetime('now', '+2 month'), 'В лесу', '325 рублей/час', '', 1),
+('Третье мероприятие', datetime('now', '+3 month'), 'Не знамо где', '400 рублей за вечер', '', 1),
+('Четвертое мероприятие', datetime('now', '+1 month', '-1 day'), 'Прям тут', '$900', '', 1);
 
 insert into statistic (user_id, event_id) values
 (2, 1),

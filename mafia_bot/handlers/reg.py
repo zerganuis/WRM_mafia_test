@@ -43,7 +43,7 @@ async def registration(update: Update, context: ContextTypes.DEFAULT_TYPE, acces
             "Вы уже зарегистрированы"
         )
         return ConversationHandler.END
-    user = update.message.from_user
+    user = update.effective_user  # update.message.from_user
     if not update.message:
         return
     await insert_user_id(user.id)

@@ -287,7 +287,7 @@ def get_ruletype_keyboard(
     triplet = []
     while rolelist:
         key, value = rolelist.pop()
-        if i > 2:
+        if i > 1:
             keyboard.append(triplet)
             triplet = []; i = 0
         triplet.append(InlineKeyboardButton(
