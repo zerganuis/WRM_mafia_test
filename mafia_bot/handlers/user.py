@@ -11,7 +11,7 @@ from telegram.ext import (
 )
 
 from mafia_bot import config
-from mafia_bot.handlers.response import send_response
+from mafia_bot.handlers.response import send_response, send_response_photo
 from mafia_bot.handlers.keyboards import (
     get_view_user_profile_keyboard,
     get_userlist_keyboard,
@@ -42,7 +42,11 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE, access_lev
     user = await get_user_by_id(user_id)
     if not update.message:
         return
-    await send_response(
+    if user.photo_link:
+        path_to_photo = config.PHOTOS_DIR.joinpath(f"{user_id}")
+    else:
+        path_to_photo = config.PHOTOS_DIR.joinpath("base_user_profile_photo.jpg")
+    await send_response_photo(
         update,
         context,
         render_template(
@@ -51,7 +55,8 @@ async def profile(update: Update, context: ContextTypes.DEFAULT_TYPE, access_lev
         ),
         get_user_profile_keyboard(
             callback_prefix=f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN}{user_id}"
-        )
+        ),
+        path_to_photo
     )
 
 
@@ -62,8 +67,8 @@ async def user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
     user_id = _get_user_id(query.data)
     user = await get_user_by_id(user_id)
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             "user.j2",
             {"user": user}
         ),
@@ -72,6 +77,36 @@ async def user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE
         ),
         parse_mode=telegram.constants.ParseMode.HTML,
     )
+    # if user.photo_link:
+    #     path_to_photo = config.PHOTOS_DIR.joinpath(f"{user_id}")
+    # else:
+    #     path_to_photo = config.PHOTOS_DIR.joinpath("base_user_profile_photo.jpg")
+    # query.edit_message_caption()
+    # with open(path_to_photo, 'rb') as photo:
+    #     await query.edit_message_media(
+    #         InputMediaPhoto(
+    #             media=photo,
+    #             caption=render_template(
+    #                 "user.j2",
+    #                 {"user": user}
+    #             ),
+    #             parse_mode=telegram.constants.ParseMode.HTML,
+    #         ),
+    #         reply_markup=get_user_profile_keyboard(
+    #             callback_prefix=f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN}{user_id}"
+    #         )
+    #     )
+# old
+    # await query.edit_message_text(
+    #     text=render_template(
+    #         "user.j2",
+    #         {"user": user}
+    #     ),
+    #     reply_markup=get_user_profile_keyboard(
+    #         callback_prefix=f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN}{user_id}"
+    #     ),
+    #     parse_mode=telegram.constants.ParseMode.HTML,
+    # )
 
 @validate_user(AccessLevel.USER)
 async def view_user_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level: AccessLevel):
@@ -199,8 +234,8 @@ async def edit_user_profile_button(update: Update, context: ContextTypes.DEFAULT
     if not query.data or not query.data.strip():
         return
     user_id = _get_user_id(query.data)
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             "edit_profile_menu.j2"
         ),
         reply_markup=get_edit_user_profile_keyboard(
@@ -214,6 +249,41 @@ async def edit_user_profile_button(update: Update, context: ContextTypes.DEFAULT
         ),
         parse_mode=telegram.constants.ParseMode.HTML,
     )
+    # with open(config.BASE_PHOTO, 'rb') as photo:
+    #     await query.edit_message_media(
+    #         InputMediaPhoto(
+    #             media=photo,
+    #             caption=render_template(
+    #                 "edit_profile_menu.j2"
+    #             ),
+    #             parse_mode=telegram.constants.ParseMode.HTML,
+    #         ),
+    #         reply_markup=get_edit_user_profile_keyboard(
+    #             {
+    #                 "name": f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN[:-1]}.name_{user_id}",
+    #                 "nickname": f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN[:-1]}.nickname_{user_id}",
+    #                 "city": f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN[:-1]}.city_{user_id}",
+    #                 "photo": f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN[:-1]}.photo_{user_id}",
+    #                 "back": f"{config.OWN_USER_PROFILE_CALLBACK_PATTERN}{user_id}"
+    #             }
+    #         )
+    #     )
+# old
+    # await query.edit_message_text(
+    #     text=render_template(
+    #         "edit_profile_menu.j2"
+    #     ),
+    #     reply_markup=get_edit_user_profile_keyboard(
+    #         {
+    #             "name": f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN[:-1]}.name_{user_id}",
+    #             "nickname": f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN[:-1]}.nickname_{user_id}",
+    #             "city": f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN[:-1]}.city_{user_id}",
+    #             "photo": f"{config.EDIT_USER_PROFILE_CALLBACK_PATTERN[:-1]}.photo_{user_id}",
+    #             "back": f"{config.OWN_USER_PROFILE_CALLBACK_PATTERN}{user_id}"
+    #         }
+    #     ),
+    #     parse_mode=telegram.constants.ParseMode.HTML,
+    # )
 
 
 async def edit_user_parameter_start_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -225,8 +295,8 @@ async def edit_user_parameter_start_button(update: Update, context: ContextTypes
     template = "edit_parameter_base.j2"
     if param_name == "photo":
         template = "edit_parameter_photo.j2"
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             template
         ),
         parse_mode=telegram.constants.ParseMode.HTML,
@@ -280,7 +350,7 @@ async def _edit_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def _edit_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo_file = await update.message.photo[-1].get_file()
     user = update.message.from_user
-    path = config.PHOTOS_DIR.joinpath(f"{user.id}.png")
+    path = config.PHOTOS_DIR.joinpath(f"{user.id}")
     await photo_file.download_to_drive(custom_path=path)
     await update_user_parameter(
         "photo_link",
