@@ -78,19 +78,20 @@ async def eventlist_page_button(update: Update, context: ContextTypes.DEFAULT_TY
                     current_page_index=current_page_index,
                 )
             )
-    await query.edit_message_caption(
-        caption=render_template("eventlist.j2"),
-        reply_markup=get_eventlist_keyboard(
-            pages_with_events[current_page_index],
-            callback_prefix={
-                "eventlist": config.EVENTLIST_CALLBACK_PATTERN,
-                "event_profile": config.EVENT_PROFILE_CALLBACK_PATTERN
-            },
-            page_count=len(pages_with_events),
-            current_page_index=current_page_index,
-        ),
-        parse_mode=telegram.constants.ParseMode.HTML,
-    )
+    else:
+        await query.edit_message_caption(
+            caption=render_template("eventlist.j2"),
+            reply_markup=get_eventlist_keyboard(
+                pages_with_events[current_page_index],
+                callback_prefix={
+                    "eventlist": config.EVENTLIST_CALLBACK_PATTERN,
+                    "event_profile": config.EVENT_PROFILE_CALLBACK_PATTERN
+                },
+                page_count=len(pages_with_events),
+                current_page_index=current_page_index,
+            ),
+            parse_mode=telegram.constants.ParseMode.HTML,
+        )
 
 @validate_user(AccessLevel.USER)
 async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level: AccessLevel):
