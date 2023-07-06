@@ -31,8 +31,8 @@ from mafia_bot.services.user import (
     AccessLevel
 )
 
-
 template_prefix = "event_reg/"
+
 
 class EventRegistrationState(enum.Enum):
     NAME: 'EventRegistrationState' = 0
@@ -78,6 +78,7 @@ async def _get_event_name(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     )
     return EventRegistrationState.DATETIME
 
+
 async def _get_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
     user_id = update.effective_user.id
     event_id = await get_reg_event_id(user_id)
@@ -95,6 +96,7 @@ async def _get_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
     )
     return EventRegistrationState.PLACE
+
 
 async def _get_event_place(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
     user_id = update.effective_user.id

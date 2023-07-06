@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import LiteralString
+import random
 
 from mafia_bot import config
 from mafia_bot.db import fetch_all, fetch_one, execute
@@ -15,6 +16,7 @@ class Event:
     host_id: int
     cost: str
     description: LiteralString
+    picture_id: int
     userlist: Iterable | None = None
 
 Page = Iterable[Event]
@@ -46,6 +48,7 @@ def _get_events_base_sql(select_param: LiteralString | None = None) -> LiteralSt
                    e.host_id as host_id,
                    e.cost as cost,
                    e.description as description,
+                   e.picture_id as picture_id,
                    {select_param + "," if select_param else ""}
                    e.datetime as datetime
                FROM event e"""
@@ -60,7 +63,8 @@ async def _get_eventlist_from_db(sql: LiteralString) -> Iterable[Event]:
             datetime=datetime.strptime(event["datetime"], rf"%Y-%m-%d %H:%M:%S"),
             host_id=event["host_id"],
             cost=event["cost"],
-            description=event["description"]
+            description=event["description"],
+            picture_id=event["picture_id"]
         )
         for event in events_raw
     ]
@@ -74,7 +78,8 @@ async def _get_event_from_db(sql: LiteralString) -> Event:
         datetime=datetime.strptime(event["datetime"], rf"%Y-%m-%d %H:%M:%S"),
         host_id=event["host_id"],
         cost=event["cost"],
-        description=event["description"]
+        description=event["description"],
+        picture_id=event["picture_id"]
     )
 
 
@@ -103,7 +108,7 @@ async def update_event_parameter(param_name: str, param_value: str, event_id: in
 
 async def insert_event_id(user_id: int, event_id: int):
     sql_user = f"""INSERT INTO event values
-    ({event_id}, '', datetime('now'), '', '', '', null)"""
+    ({event_id}, '', datetime('now'), '', '', '', null, {random.choice(config.EVENT_PICTURES)})"""
     sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
     await execute(sql_user)
     await execute(sql_user_reg)

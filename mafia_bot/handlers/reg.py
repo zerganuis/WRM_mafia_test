@@ -28,11 +28,13 @@ from mafia_bot.services.user import (
 
 template_prefix = "reg/"
 
+
 class RegistrationState(enum.Enum):
     NAME: 'RegistrationState' = 0
     NICKNAME: 'RegistrationState' = 1
     CITY: 'RegistrationState' = 2
     PHOTO: 'RegistrationState' = 3
+
 
 @validate_user(AccessLevel.WALKER)
 async def registration(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level: AccessLevel) -> RegistrationState:
@@ -43,7 +45,7 @@ async def registration(update: Update, context: ContextTypes.DEFAULT_TYPE, acces
             "Вы уже зарегистрированы"
         )
         return ConversationHandler.END
-    user = update.effective_user  # update.message.from_user
+    user = update.effective_user
     if not update.message:
         return
     await insert_user_id(user.id)
@@ -74,6 +76,7 @@ async def _get_user_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     )
     return RegistrationState.NICKNAME
 
+
 async def _get_user_nickname(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     user = update.message.from_user
     text = update.message.text
@@ -90,6 +93,7 @@ async def _get_user_nickname(update: Update, context: ContextTypes.DEFAULT_TYPE)
         )
     )
     return RegistrationState.CITY
+
 
 async def _get_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     user = update.message.from_user
@@ -108,6 +112,7 @@ async def _get_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     )
     return RegistrationState.PHOTO
 
+
 async def _skip_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     user = update.message.from_user
     await send_response(
@@ -119,14 +124,15 @@ async def _skip_user_city(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     )
     return RegistrationState.PHOTO
 
+
 async def _get_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     photo_file = await update.message.photo[-1].get_file()
     user = update.message.from_user
     path = config.PHOTOS_DIR.joinpath(f"{user.id}")
     await photo_file.download_to_drive(custom_path=path)
     await update_user_parameter(
-        "photo_link",
-        path,
+        "hasPhoto",
+        'true',
         user.id
     )
     await delete_user_registration(user.id)
@@ -139,6 +145,7 @@ async def _get_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     )
     return ConversationHandler.END
 
+
 async def _skip_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> RegistrationState:
     user = update.message.from_user
     await delete_user_registration(user.id)
@@ -150,6 +157,7 @@ async def _skip_user_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         )
     )
     return ConversationHandler.END
+
 
 async def _cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.message.from_user

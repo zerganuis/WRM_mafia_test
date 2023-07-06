@@ -1,6 +1,3 @@
-import random
-from datetime import datetime
-
 import telegram
 from telegram import Update, InputMediaPhoto
 from telegram.ext import (
@@ -33,6 +30,7 @@ from mafia_bot.services.event import (
 )
 from mafia_bot.services.user import get_user_by_id, validate_user, AccessLevel
 
+
 @validate_user(AccessLevel.USER)
 async def eventlist(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level: AccessLevel):
     pages_with_events = list(await get_eventlist())
@@ -52,6 +50,7 @@ async def eventlist(update: Update, context: ContextTypes.DEFAULT_TYPE, access_l
             current_page_index=0
         )
     )
+
 
 async def eventlist_page_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -93,6 +92,7 @@ async def eventlist_page_button(update: Update, context: ContextTypes.DEFAULT_TY
             parse_mode=telegram.constants.ParseMode.HTML,
         )
 
+
 @validate_user(AccessLevel.USER)
 async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level: AccessLevel):
     query = update.callback_query
@@ -109,7 +109,7 @@ async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYP
     user_id = query.from_user.id
     isSignedUp_ = await is_signed_up(user_id, current_event.id)
 
-    with open(random.choice(config.EVENT_PICTURES), 'rb') as photo:
+    with open(config.EVENT_PICTURES[current_event.picture_id], 'rb') as photo:
         await query.edit_message_media(
             InputMediaPhoto(
                 media=photo,
@@ -128,21 +128,6 @@ async def event_profile_button(update: Update, context: ContextTypes.DEFAULT_TYP
                 is_signed_up=isSignedUp_
             )
         )
-    # await query.edit_message_text(
-    #     text=render_template(
-    #         "event.j2",
-    #         {
-    #             "event": current_event,
-    #             "datetime": current_event.datetime.strftime(config.DATETIME_FORMAT),
-    #             "host": host
-    #         },
-    #     ),
-    #     reply_markup=get_event_profile_keyboard(
-    #         callback_prefix=callback_prefix,
-    #         is_signed_up=isSignedUp_
-    #     ),
-    #     parse_mode=telegram.constants.ParseMode.HTML,
-    # )
 
 
 async def sign_up_button(update: Update, context: ContextTypes.DEFAULT_TYPE):

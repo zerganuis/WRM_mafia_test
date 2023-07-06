@@ -5,7 +5,7 @@ create table user(
     name varchar(64) not null,
     nickname varchar(64) not null,
     city varchar(64) not null,
-    photo_link text not null,
+    hasPhoto boolean not null,
     access_level int not null
 );
 
@@ -17,6 +17,7 @@ create table event(
     cost text not null,
     description text not null,
     host_id bigint,
+    picture_id int not null,
     foreign key (host_id) references user(telegram_id) ON DELETE SET null
 );
 
@@ -57,11 +58,11 @@ insert into user values
 (3, 'Второй игрок', 'Ник2', 'Москва', '', 0),
 (4, 'Третий игрок', 'Ник3', 'Москва', '', 0);
 
-insert into event (name, datetime, place, cost, description, host_id) values
-('Первое мероприятие', datetime('now', '+1 month'), 'За гаражами', '1200 рублей', '', 1),
-('Второе мероприятие', datetime('now', '+2 month'), 'В лесу', '325 рублей/час', '', 1),
-('Третье мероприятие', datetime('now', '+3 month'), 'Не знамо где', '400 рублей за вечер', '', 1),
-('Четвертое мероприятие', datetime('now', '+1 month', '-1 day'), 'Прям тут', '$900', '', 1);
+insert into event (name, datetime, place, cost, description, host_id, picture_id) values
+('Первое мероприятие', datetime('now', '+1 month'), 'За гаражами', '1200 рублей', '', 1, 0),
+('Второе мероприятие', datetime('now', '+2 month'), 'В лесу', '325 рублей/час', '', 1, 1),
+('Третье мероприятие', datetime('now', '+3 month'), 'Не знамо где', '400 рублей за вечер', '', 1, 2),
+('Четвертое мероприятие', datetime('now', '+1 month', '-1 day'), 'Прям тут', '$900', '', 1, 0);
 
 insert into statistic (user_id, event_id) values
 (2, 1),

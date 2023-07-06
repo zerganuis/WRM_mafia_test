@@ -16,6 +16,7 @@ _all_periods = {
     "MONTH": "За последний месяц"
 }
 
+
 @validate_user(AccessLevel.USER)
 async def top(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level):
     if not update.message:
@@ -77,21 +78,7 @@ async def top_submenu_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 lambda user: f"{user.name} ({user.total_score})"
             )
         )
-    # await query.edit_message_caption(
-    #     caption=render_template(
-    #         "top_submenu.j2",
-    #         {"period": _all_periods[period].lower()}
-    #     ),
-    #     reply_markup=get_userlist_keyboard(
-    #         users,
-    #         {
-    #             "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
-    #             "back": f"{config.TOP_MENU_CALLBACK_PATTERN}0"
-    #         },
-    #         lambda user: f"{user.name} ({user.total_score})"
-    #     ),
-    #     parse_mode=telegram.constants.ParseMode.HTML,
-    # )
+
 
 def _get_period(query_data) -> str:
     pattern_prefix_length = len(config.TOP_SUBMENU_CALLBACK_PATTERN)

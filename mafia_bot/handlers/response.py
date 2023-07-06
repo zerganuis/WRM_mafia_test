@@ -6,6 +6,7 @@ from telegram import Chat, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 from mafia_bot import config
 
+
 async def send_response(
     update: Update,
     context: ContextTypes.DEFAULT_TYPE,

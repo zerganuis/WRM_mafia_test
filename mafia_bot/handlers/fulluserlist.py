@@ -37,6 +37,7 @@ async def full_userlist(update: Update, context: ContextTypes.DEFAULT_TYPE, acce
         )
     )
 
+
 async def full_userlist_page_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -61,19 +62,6 @@ async def full_userlist_page_button(update: Update, context: ContextTypes.DEFAUL
                 current_page_index=current_page_index,
             )
         )
-    # await query.edit_message_caption(
-    #     caption=render_template("full_userlist.j2"),
-    #     reply_markup=get_full_userlist_keyboard(
-    #         pages_with_users[current_page_index],
-    #         callback_prefix={
-    #             "userlist": config.FULL_USERLIST_CALLBACK_PATTERN,
-    #             "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{config.FULL_USERLIST_CALLBACK_PATTERN}0_0"
-    #         },
-    #         page_count=len(pages_with_users),
-    #         current_page_index=current_page_index,
-    #     ),
-    #     parse_mode=telegram.constants.ParseMode.HTML,
-    # )
 
 
 def _get_current_page_index(query_data) -> int:

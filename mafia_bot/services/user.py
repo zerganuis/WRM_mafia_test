@@ -23,7 +23,7 @@ class User:
     name: str
     nickname: str
     city: str
-    photo_link: str
+    hasPhoto: bool
     access_level: AccessLevel
     total_score: int | None = None
 
@@ -61,7 +61,7 @@ def validate_user(function_access_level: AccessLevel = AccessLevel.WALKER):
     return inner
 
 
-async def get_top_users(period: datetime.timedelta = 0, limit = config.TOP_PAGE_LENGTH):
+async def get_top_users(period: datetime.timedelta = 0, limit = config.TOP_PAGE_LENGTH) -> Iterable[User]:
     select_param = """iif(tt.total_score is null, 0.0, tt.total_score) as total_score"""
     sql = f"""{_get_users_base_sql(select_param)}
             LEFT JOIN (
@@ -79,6 +79,40 @@ async def get_top_users(period: datetime.timedelta = 0, limit = config.TOP_PAGE_
     users = await _get_userlist_from_db(sql)
     return users
 
+
+async def get_user_statistic(user_id: int, period: datetime.timedelta = 0) -> dict:
+    sql = f"""select
+                iif(total(s.score) is null, 0.0, total(s.score)) as total_score,
+                count(s.isWinner = True) as win_count,
+                count (*) as event_count,
+                count(s.isWinner = True) / count(*) * 100 as win_rate
+            from user u
+            LEFT JOIN statistic s on s.user_id = u.telegram_id
+            left join event e on e.id = s.event_id
+            where
+                u.telegram_id = {user_id}
+                {f'''and e.datetime >  datetime(unixepoch() - unixepoch(datetime({period.total_seconds()}, 'unixepoch')), 'unixepoch')''' if period else " "}"""
+    stats = await fetch_one(sql)
+    return stats
+
+'''
+SELECT
+	u.telegram_id as user_id,
+	u.name as user_name,
+    u.nickname as user_nickname,
+    u.city as user_city,
+    u.photo_link as user_photo_link,
+    u.access_level as user_access_level,
+	SUM(s.score) as total_score,
+    Count(s.isWinner = True) as Win_count,
+    Count(*) as event_count,
+    Count(s.isWinner = True)/Count(*)*100 as winrate
+FROM user u
+LEFT JOIN Event_members s ON s.member_id=u.telegram_id
+LEFT JOIN Event e ON e.Event_id=s.Event_id
+where 
+	u.telegram_id = 3
+'''
 
 async def get_userlist_by_access_level(access_level: AccessLevel) -> Iterable[User]:
     sql = f"""  SELECT
@@ -141,7 +175,7 @@ def _get_users_base_sql(select_param: LiteralString | None = None) -> LiteralStr
                    u.name as name,
                    u.nickname as nickname,
                    u.city as city,
-                   u.photo_link as photo_link,
+                   u.hasPhoto as hasPhoto,
                    {select_param + "," if select_param else ""}
                    u.access_level as access_level
                FROM user u"""
@@ -155,7 +189,7 @@ async def _get_userlist_from_db(sql):
             name=user["name"],
             nickname=user["nickname"],
             city=user["city"],
-            photo_link=user["photo_link"],
+            hasPhoto=user["hasPhoto"],
             access_level=_get_access_level(user["access_level"]),
             total_score=user.get("total_score", None)
         )
@@ -171,7 +205,7 @@ async def _get_user_from_db(sql: LiteralString) -> User:
                 name=user["name"],
                 nickname=user["nickname"],
                 city=user["city"],
-                photo_link=user["photo_link"],
+                hasPhoto=user["hasPhoto"],
                 access_level=_get_access_level(user["access_level"]),
                 total_score=user.get("total_score", None)
             )
@@ -180,10 +214,11 @@ async def _get_user_from_db(sql: LiteralString) -> User:
 
 async def update_user_parameter(param_name: str, param_value: str, user_id: int):
     sql = f"""UPDATE user
-        SET {param_name} = '{param_value}'
+        SET {param_name} = {f"{param_value}" if param_name == "hasPhoto" else f"'{param_value}'"}
         where telegram_id = {user_id}
     """
     await execute(sql)
+
 
 async def update_user_access_level(access_level: int, user_id: int):
     sql = f"""UPDATE user
@@ -191,6 +226,7 @@ async def update_user_access_level(access_level: int, user_id: int):
         where telegram_id = {user_id}
     """
     await execute(sql)
+
 
 async def insert_user_id(telegram_id: int):
     sql_user = f"""INSERT INTO user values
@@ -209,11 +245,13 @@ async def delete_user_registration(telegram_id: int):
     sql_user_reg = f"""DELETE from user_registration where telegram_id = {telegram_id}"""
     await execute(sql_user_reg)
 
+
 async def edit_statistic_is_winner(user_id: int, event_id: int, isWinner: bool):
     sql = f"""  update statistic
                 set isWinner = {'true' if isWinner else 'false'}
                 where user_id = {user_id} and event_id = {event_id}"""
     await execute(sql)
+
 
 async def edit_statistic_score(user_id: int, event_id: int, score: int):
     sql = f"""  update statistic
@@ -231,10 +269,12 @@ async def delete_edit_statistic(editor_id: int):
     sql = f"""DELETE from statistic_edit where editor_id = {editor_id}"""
     await execute(sql)
 
+
 async def get_edit_statistic(editor_id: int) -> dict[str, int]:
     sql = f"""select * from statistic_edit where editor_id = {editor_id}"""
     response = await fetch_one(sql)
     return response
+
 
 def get_user_id_by_telegram_nick(telegram_nick: str) -> int:
     return

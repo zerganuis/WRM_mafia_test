@@ -5,6 +5,7 @@ from mafia_bot import config
 from mafia_bot.services.event import Event
 from mafia_bot.services.user import User
 
+
 def get_page_keyboard(
         current_page_index: int,
         page_count: int,
@@ -34,6 +35,7 @@ def get_page_keyboard(
     ]
     return InlineKeyboardMarkup(keyboard)
 
+
 def get_eventlist_keyboard(
         events_on_page: Iterable[Event],
         callback_prefix: dict[str, str],
@@ -57,6 +59,7 @@ def get_eventlist_keyboard(
     )
     return InlineKeyboardMarkup(keyboard)
 
+
 def get_full_userlist_keyboard(
         users_on_page: Iterable[Event],
         callback_prefix: dict[str, str],
@@ -79,6 +82,7 @@ def get_full_userlist_keyboard(
         ).inline_keyboard[0]
     )
     return InlineKeyboardMarkup(keyboard)
+
 
 def get_event_profile_keyboard(callback_prefix: dict[str, str], is_signed_up: bool):
     keyboard = [
@@ -111,6 +115,7 @@ def get_user_profile_keyboard(callback_prefix: str):
     ]
     return InlineKeyboardMarkup(keyboard)
 
+
 def get_edit_user_profile_keyboard(callback_prefix: dict[str, str]):
     keyboard = [
         [
@@ -136,6 +141,7 @@ def get_edit_user_profile_keyboard(callback_prefix: dict[str, str]):
         ]
     ]
     return InlineKeyboardMarkup(keyboard)
+
 
 def get_edit_event_profile_keyboard(callback_prefix: dict[str, str]):
     keyboard = [
