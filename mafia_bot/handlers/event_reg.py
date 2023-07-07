@@ -50,6 +50,8 @@ async def create_event(update: Update, context: ContextTypes.DEFAULT_TYPE, acces
         return
     max_id = await get_max_event_id()
     user_id = update.effective_user.id
+    if not max_id:
+        max_id = 0
     await insert_event_id(user_id, max_id + 1)
     await send_response(
         update,

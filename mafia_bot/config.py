@@ -14,11 +14,10 @@ TEMPLATES_DIR = BASE_DIR.joinpath('templates')
 PHOTOS_DIR = BASE_DIR.joinpath('photos')
 BASE_PHOTO = PHOTOS_DIR.joinpath("base.jpg")
 BASE_USER_PHOTO = PHOTOS_DIR.joinpath("base_user_profile_photo.jpg")
-EVENT_PICTURES = (
-    PHOTOS_DIR.joinpath("event_0"),
-    PHOTOS_DIR.joinpath("event_1"),
-    PHOTOS_DIR.joinpath("event_2"),
-)
+INFO_PHOTOS_DIR = PHOTOS_DIR.joinpath("info")
+ROLE_PHOTOS_DIR = PHOTOS_DIR.joinpath("roles")
+EVENT_PHOTOS_DIR = PHOTOS_DIR.joinpath("events")
+EVENT_PICTURES = [EVENT_PHOTOS_DIR.joinpath(f"{i}.jpg") for i in range(8)]
 
 DATETIME_FORMAT = rf"%d.%m.%Y %H:%M"
 

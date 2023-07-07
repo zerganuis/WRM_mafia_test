@@ -108,7 +108,7 @@ async def update_event_parameter(param_name: str, param_value: str, event_id: in
 
 async def insert_event_id(user_id: int, event_id: int):
     sql_user = f"""INSERT INTO event values
-    ({event_id}, '', datetime('now'), '', '', '', null, {random.choice(config.EVENT_PICTURES)})"""
+    ({event_id}, '', datetime('now'), '', '', '', null, {random.choice(range(len(config.EVENT_PICTURES)))})"""
     sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
     await execute(sql_user)
     await execute(sql_user_reg)

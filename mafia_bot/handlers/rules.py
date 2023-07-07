@@ -1,5 +1,5 @@
 import telegram
-from telegram import Update
+from telegram import Update, InputMediaPhoto
 from telegram.ext import ContextTypes
 
 from mafia_bot import config
@@ -84,9 +84,13 @@ async def ruletype_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not query.data or not query.data.strip():
         return
     ruletype = _get_ruletype(query.data)
-    await query.edit_message_caption(
-        caption=render_template(
-            f"{template_prefix}{ruletype}_rules.j2"
+    await query.edit_message_media(
+        InputMediaPhoto(
+            media=open(config.BASE_PHOTO, 'rb'),
+            caption=render_template(
+                f"{template_prefix}{ruletype}_rules.j2"
+            ),
+            parse_mode=telegram.constants.ParseMode.HTML,
         ),
         reply_markup=get_ruletype_keyboard(
             _all_roles[ruletype],
@@ -94,9 +98,21 @@ async def ruletype_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "role": f"{config.ROLE_CALLBACK_PATTERN}{query.data}_",
                 "back": f"{config.RULES_CALLBACK_PATTERN}0"
             }
-        ),
-        parse_mode=telegram.constants.ParseMode.HTML,
+        )
     )
+    # await query.edit_message_caption(
+    #     caption=render_template(
+    #         f"{template_prefix}{ruletype}_rules.j2"
+    #     ),
+    #     reply_markup=get_ruletype_keyboard(
+    #         _all_roles[ruletype],
+    #         {
+    #             "role": f"{config.ROLE_CALLBACK_PATTERN}{query.data}_",
+    #             "back": f"{config.RULES_CALLBACK_PATTERN}0"
+    #         }
+    #     ),
+    #     parse_mode=telegram.constants.ParseMode.HTML,
+    # )
 
 
 async def role_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -106,15 +122,27 @@ async def role_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     role = _get_role(query.data)
     prev_callback = _get_prev_callback(query.data, config.ROLE_CALLBACK_PATTERN)
-    await query.edit_message_caption(
-        caption=render_template(
-            f"{template_prefix}{role}.j2"
+    await query.edit_message_media(
+        InputMediaPhoto(
+            media=open(config.ROLE_PHOTOS_DIR.joinpath(f"{role}.jpg"), 'rb'),
+            caption=render_template(
+                f"{template_prefix}{role}.j2"
+            ),
+            parse_mode=telegram.constants.ParseMode.HTML,
         ),
         reply_markup=get_role_keyboard(
             f"{prev_callback}"
-        ),
-        parse_mode=telegram.constants.ParseMode.HTML,
+        )
     )
+    # await query.edit_message_caption(
+    #     caption=render_template(
+    #         f"{template_prefix}{role}.j2"
+    #     ),
+    #     reply_markup=get_role_keyboard(
+    #         f"{prev_callback}"
+    #     ),
+    #     parse_mode=telegram.constants.ParseMode.HTML,
+    # )
 
 
 def _get_role(query_data: str) -> str:
