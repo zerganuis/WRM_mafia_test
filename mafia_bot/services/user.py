@@ -46,10 +46,13 @@ def validate_user(function_access_level: AccessLevel = AccessLevel.WALKER):
         async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user_id = update.effective_user.id
             user = await get_user_by_id(user_id)
-            user_access_level = AccessLevel.WALKER if not user else user.access_level
-            constant_admin_id_list = await get_constant_admin_list()
-            if user_id in constant_admin_id_list:
-                user_access_level = AccessLevel.ADMIN
+            if user:
+                user_access_level = user.access_level
+                constant_admin_id_list = await get_constant_admin_list()
+                if user_id in constant_admin_id_list:
+                    user_access_level = AccessLevel.ADMIN
+            else:
+                user_access_level = AccessLevel.WALKER
             if function_access_level == AccessLevel.WALKER:
                 return await handler(update, context, user_access_level)
             else:
@@ -97,24 +100,6 @@ async def get_user_statistic(user_id: int, period: datetime.timedelta = 0) -> di
         stats["win_rate"] = 0
     return stats
 
-'''
-SELECT
-	u.telegram_id as user_id,
-	u.name as user_name,
-    u.nickname as user_nickname,
-    u.city as user_city,
-    u.photo_link as user_photo_link,
-    u.access_level as user_access_level,
-	SUM(s.score) as total_score,
-    Count(s.isWinner = True) as Win_count,
-    Count(*) as event_count,
-    Count(s.isWinner = True)/Count(*)*100 as winrate
-FROM user u
-LEFT JOIN Event_members s ON s.member_id=u.telegram_id
-LEFT JOIN Event e ON e.Event_id=s.Event_id
-where 
-	u.telegram_id = 3
-'''
 
 async def get_userlist_by_access_level(access_level: AccessLevel) -> Iterable[User]:
     sql = f"""  SELECT
@@ -129,9 +114,10 @@ async def get_userlist_by_access_level(access_level: AccessLevel) -> Iterable[Us
     return set(user_id_list)
 
 async def get_constant_admin_list():
-    sql = f"""  SELECT 
-                    telegram_id as user_id
-                FROM admin"""
+    sql = f"""  select
+                a.telegram_id
+                from admin a
+                inner join user u on u.telegram_id = a.telegram_id;"""
     admin_ids_raw = await fetch_all(sql)
     admin_id_list = [user_id_raw["user_id"] for user_id_raw in admin_ids_raw]
     return admin_id_list
