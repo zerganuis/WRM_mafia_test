@@ -1,7 +1,9 @@
 <b>Игрок</b><br><br>
 Имя: {{ user.name }}<br>
 Игровое имя: {{ user.nickname }}<br>
+{% if user.city.strip() %}
 Город: {{ user.city }}<br>
+{% endif %}
 <br>
 Статистика за месяц:<br>
 Баллы: {{ month['total_score'] }} <br>

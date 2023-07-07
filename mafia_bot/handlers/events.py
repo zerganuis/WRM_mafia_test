@@ -239,7 +239,15 @@ async def edit_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_id = update.effective_user.id
     event_id = await get_reg_event_id(user_id)
     text = update.message.text
-    param_value = f"datetime('{format_datetime(text)}')"
+    try:
+        param_value = f"datetime('{format_datetime(text)}')"
+    except Exception:
+        await send_response(
+            update,
+            context,
+            "Вы неверно ввели дату, попробуйте еще раз:"
+        )
+        return "datetime"
     await update_event_parameter("datetime", param_value, event_id)
     await delete_event_registration(event_id)
     await send_response(
@@ -294,8 +302,21 @@ async def edit_event_description(update: Update, context: ContextTypes.DEFAULT_T
 
 async def edit_event_host(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    event_id = await get_reg_event_id(user_id)
+    host_id = update.message.contact.user_id
+    host = await get_user_by_id(host_id)
+    if host:
+        event_id = await get_reg_event_id(user_id)
+    else:
+        await send_response(
+            update,
+            context,
+            """Этот пользователь не зарегистрирован, 
+ведущим может быть только зарегистрированный пользователь. 
+Введите контакт ведущего заново:"""
+        )
+        return "host"
     param_value = update.message.text
+    await update_event_parameter("host_id", host_id, event_id)
     await delete_event_registration(event_id)
     await send_response(
         update,
@@ -327,7 +348,7 @@ def get_edit_event_conversation() -> ConversationHandler:
             "place": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_event_place)],
             "cost": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_event_cost)],
             "description": [MessageHandler(filters.TEXT & ~filters.COMMAND, edit_event_description)],
-            "host": [MessageHandler(filters.PHOTO, edit_event_host)]
+            "host": [MessageHandler(filters.CONTACT, edit_event_host)]
         },
         fallbacks=[MessageHandler(filters.COMMAND, _cancel)]
     )

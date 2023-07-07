@@ -93,6 +93,8 @@ async def get_user_statistic(user_id: int, period: datetime.timedelta = 0) -> di
                 u.telegram_id = {user_id}
                 {f'''and e.datetime >  datetime(unixepoch() - unixepoch(datetime({period.total_seconds()}, 'unixepoch')), 'unixepoch')''' if period else " "}"""
     stats = await fetch_one(sql)
+    if not stats["win_rate"]:
+        stats["win_rate"] = 0
     return stats
 
 '''

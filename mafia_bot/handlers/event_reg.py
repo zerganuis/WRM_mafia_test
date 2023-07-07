@@ -28,7 +28,8 @@ from mafia_bot.services.event import (
 from mafia_bot.services.user import (
     User,
     validate_user,
-    AccessLevel
+    AccessLevel,
+    get_user_by_id
 )
 
 template_prefix = "event_reg/"
@@ -83,9 +84,18 @@ async def _get_event_datetime(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_id = update.effective_user.id
     event_id = await get_reg_event_id(user_id)
     text = update.message.text
+    try:
+        param_value = f"datetime('{format_datetime(text)}')"
+    except Exception:
+        await send_response(
+            update,
+            context,
+            "Вы неверно ввели дату, попробуйте еще раз:"
+        )
+        return EventRegistrationState.DATETIME
     await update_event_parameter(
         "datetime",
-        f"datetime('{format_datetime(text)}')",
+        param_value,
         event_id
     )
     await send_response(
@@ -119,13 +129,21 @@ async def _get_event_place(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def _get_event_host(update: Update, context: ContextTypes.DEFAULT_TYPE) -> EventRegistrationState:
     user_id = update.effective_user.id
-    event_id = await get_reg_event_id(user_id)
+    host_id = update.message.contact.user_id
+    host = await get_user_by_id(host_id)
+    if host:
+        event_id = await get_reg_event_id(user_id)
+    else:
+        await send_response(
+            update,
+            context,
+            """Этот пользователь не зарегистрирован, 
+ведущим может быть только зарегистрированный пользователь. 
+Введите контакт ведущего заново:"""
+        )
+        return EventRegistrationState.HOST
     text = update.message.text
-    await update_event_parameter(
-        "host_id",
-        update.message.contact.user_id,
-        event_id
-    )
+    await update_event_parameter("host_id", host_id, event_id)
     await send_response(
         update,
         context,
