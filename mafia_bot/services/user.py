@@ -115,7 +115,7 @@ async def get_userlist_by_access_level(access_level: AccessLevel) -> Iterable[Us
 
 async def get_constant_admin_list():
     sql = f"""  select
-                a.telegram_id
+                a.telegram_id as user_id
                 from admin a
                 inner join user u on u.telegram_id = a.telegram_id;"""
     admin_ids_raw = await fetch_all(sql)
