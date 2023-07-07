@@ -1,14 +1,14 @@
 import datetime
 
 import telegram
-from telegram import Update
+from telegram import Update, InputMediaPhoto
 from telegram.ext import ContextTypes
 
 from mafia_bot import config
-from mafia_bot.handlers.response import send_response
+from mafia_bot.handlers.response import send_response, send_response_photo
 from mafia_bot.handlers.keyboards import get_top_menu_keyboard, get_userlist_keyboard
 from mafia_bot.templates import render_template
-from mafia_bot.services.user import get_top_users
+from mafia_bot.services.user import get_top_users, validate_user, AccessLevel
 
 
 _all_periods = {
@@ -17,10 +17,11 @@ _all_periods = {
 }
 
 
-async def top(update: Update, context: ContextTypes.DEFAULT_TYPE):
+@validate_user(AccessLevel.USER)
+async def top(update: Update, context: ContextTypes.DEFAULT_TYPE, access_level):
     if not update.message:
         return
-    await send_response(
+    await send_response_photo(
         update,
         context,
         render_template(
@@ -38,8 +39,8 @@ async def top_menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     if not query.data or not query.data.strip():
         return
-    await query.edit_message_text(
-        text=render_template(
+    await query.edit_message_caption(
+        caption=render_template(
             "top_menu.j2"
         ),
         reply_markup=get_top_menu_keyboard(
@@ -58,21 +59,26 @@ async def top_submenu_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
     period = _get_period(query.data)
     timedelta = _get_timedelta(period)
     users = list(await get_top_users(timedelta))
-    await query.edit_message_text(
-        text=render_template(
-            "top_submenu.j2",
-            {"period": _all_periods[period].lower()}
-        ),
-        reply_markup=get_userlist_keyboard(
-            users,
-            {
-                "user_profile": f"{config.USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
-                "back": f"{config.TOP_MENU_CALLBACK_PATTERN}0"
-            },
-            lambda user: f"{user.name} ({user.total_score})"
-        ),
-        parse_mode=telegram.constants.ParseMode.HTML,
-    )
+    with open(config.BASE_PHOTO, 'rb') as photo:
+        await query.edit_message_media(
+            InputMediaPhoto(
+                media=photo,
+                caption=render_template(
+                    "top_submenu.j2",
+                    {"period": _all_periods[period].lower()}
+                ),
+                parse_mode=telegram.constants.ParseMode.HTML,
+            ),
+            reply_markup=get_userlist_keyboard(
+                users,
+                {
+                    "user_profile": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
+                    "back": f"{config.TOP_MENU_CALLBACK_PATTERN}0"
+                },
+                lambda user: f"{user.name} ({user.total_score})"
+            )
+        )
+
 
 def _get_period(query_data) -> str:
     pattern_prefix_length = len(config.TOP_SUBMENU_CALLBACK_PATTERN)

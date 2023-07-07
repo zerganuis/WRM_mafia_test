@@ -2,9 +2,10 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import LiteralString
+import random
 
 from mafia_bot import config
-from mafia_bot.db import fetch_all, fetch_one
+from mafia_bot.db import fetch_all, fetch_one, execute
 
 @dataclass
 class Event:
@@ -13,14 +14,16 @@ class Event:
     datetime: datetime
     place: str
     host_id: int
-    description: LiteralString = ""
+    cost: str
+    description: LiteralString
+    picture_id: int
     userlist: Iterable | None = None
 
 Page = Iterable[Event]
 
 async def get_eventlist() -> Iterable[Page]:
     sql = f"""{_get_events_base_sql()}
-              where e.datetime > datetime('now')
+              where e.datetime > datetime('now', '-1 day')
               order by e.datetime"""
     events = await _get_eventlist_from_db(sql)
     return _group_events_by_pages(events)
@@ -28,7 +31,7 @@ async def get_eventlist() -> Iterable[Page]:
 def _group_events_by_pages(events: Iterable[Event]) -> Iterable[Page]:
     pagelen=config.EVENTLIST_PAGE_LENGTH
     eventlist = []
-    for i in range(len(events) // pagelen + len(events) % pagelen):
+    for i in range(len(events) // pagelen + int(bool(len(events) % pagelen))):
         eventlist.append([])
         for j in range(pagelen):
             event_index = i * pagelen + j
@@ -43,6 +46,9 @@ def _get_events_base_sql(select_param: LiteralString | None = None) -> LiteralSt
                    e.name as name,
                    e.place as place,
                    e.host_id as host_id,
+                   e.cost as cost,
+                   e.description as description,
+                   e.picture_id as picture_id,
                    {select_param + "," if select_param else ""}
                    e.datetime as datetime
                FROM event e"""
@@ -54,8 +60,11 @@ async def _get_eventlist_from_db(sql: LiteralString) -> Iterable[Event]:
             id=event["id"],
             name=event["name"],
             place=event["place"],
-            datetime=event["datetime"],
-            host_id=event["host_id"]
+            datetime=datetime.strptime(event["datetime"], rf"%Y-%m-%d %H:%M:%S"),
+            host_id=event["host_id"],
+            cost=event["cost"],
+            description=event["description"],
+            picture_id=event["picture_id"]
         )
         for event in events_raw
     ]
@@ -66,13 +75,83 @@ async def _get_event_from_db(sql: LiteralString) -> Event:
         id=event["id"],
         name=event["name"],
         place=event["place"],
-        datetime=event["datetime"],
+        datetime=datetime.strptime(event["datetime"], rf"%Y-%m-%d %H:%M:%S"),
         host_id=event["host_id"],
-        # description=event["description"]
+        cost=event["cost"],
+        description=event["description"],
+        picture_id=event["picture_id"]
     )
+
+
+async def get_max_event_id() -> int:
+    sql = f"""select max(id) as max_id from event"""
+    response = await fetch_one(sql)
+    return response['max_id']
+
 
 async def get_event(event_id: int) -> Event:
     sql = f"""{_get_events_base_sql()}
               where e.id = {event_id}"""
     event = await _get_event_from_db(sql)
     return event
+
+
+async def update_event_parameter(param_name: str, param_value: str, event_id: int):
+    if param_name != 'datetime':
+        param_value = f"'{param_value}'"
+    sql = f"""UPDATE event
+        SET {param_name} = {param_value}
+        where id = {event_id}
+    """
+    await execute(sql)
+
+
+async def insert_event_id(user_id: int, event_id: int):
+    sql_user = f"""INSERT INTO event values
+    ({event_id}, '', datetime('now'), '', '', '', null, {random.choice(config.EVENT_PICTURES)})"""
+    sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
+    await execute(sql_user)
+    await execute(sql_user_reg)
+
+
+async def insert_edit_event_id(user_id: int, event_id: int):
+    sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
+    await execute(sql_user_reg)
+
+
+async def delete_event(event_id: int):
+    sql_user = f"""DELETE from event where id = {event_id}"""
+    await execute(sql_user)
+
+
+async def delete_event_registration(event_id: int):
+    sql_user_reg = f"""DELETE from event_registration where event_id = {event_id}"""
+    await execute(sql_user_reg)
+
+
+async def sign_up(user_id: int, event_id: int):
+    sql = f"""insert into statistic (user_id, event_id) values ({user_id}, {event_id})"""
+    await execute(sql)
+
+
+async def sign_out(user_id: int, event_id: int):
+    sql = f"""delete from statistic where user_id = {user_id} and event_id = {event_id}"""
+    await execute(sql)
+
+
+async def is_signed_up(user_id: int, event_id: int) -> bool:
+    sql = f"""select * from statistic where user_id = {user_id} and event_id = {event_id}"""
+    res = await fetch_one(sql)
+    return bool(res)
+
+
+async def get_reg_event_id(user_id: int) -> int:
+    sql = f"""select event_id from event_registration where user_id = {user_id}"""
+    response = await fetch_one(sql)
+    return response['event_id']
+
+
+def format_datetime(text: str) -> str:
+    dt = datetime.strptime(text, config.DATETIME_FORMAT)
+    dt_to_sql = dt.strftime(rf"%Y-%m-%d %H:%M:%S")
+    return dt_to_sql

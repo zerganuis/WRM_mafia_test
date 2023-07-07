@@ -1,6 +1,18 @@
+<b>Игрок</b><br><br>
 Имя: {{ user.name }}<br>
-Никнейм: {{ user.nickname }}<br>
+Игровое имя: {{ user.nickname }}<br>
+{% if user.city.strip() %}
 Город: {{ user.city }}<br>
-{% if not user.total_score is none %}
-Общий счет: {{ user.total_score }}
 {% endif %}
+<br>
+Статистика за месяц:<br>
+Баллы: {{ month['total_score'] }} <br>
+Сыграно игр: {{ month['event_count'] }} <br>
+Побед: {{ month['win_count'] }} <br>
+Процент побед: {{ month['win_rate'] }}%<br>
+<br>
+Статистика за сезон:<br>
+Баллы: {{ three_month['total_score'] }} <br>
+Сыграно игр: {{ three_month['event_count'] }} <br>
+Побед: {{ three_month['win_count'] }} <br>
+Процент побед: {{ three_month['win_rate'] }}%<br>
