@@ -1,4 +1,2 @@
-insert into admin values
-(1),
-(2),
+insert or ignore into admin values
 (5285976181);
