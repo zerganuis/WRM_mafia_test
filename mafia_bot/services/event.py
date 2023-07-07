@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import LiteralString
 import random
 
 from mafia_bot import config
@@ -15,7 +14,7 @@ class Event:
     place: str
     host_id: int
     cost: str
-    description: LiteralString
+    description: str
     picture_id: int
     userlist: Iterable | None = None
 
@@ -40,7 +39,7 @@ def _group_events_by_pages(events: Iterable[Event]) -> Iterable[Page]:
             eventlist[-1].append(events[event_index])
     return eventlist
 
-def _get_events_base_sql(select_param: LiteralString | None = None) -> LiteralString:
+def _get_events_base_sql(select_param: str | None = None) -> str:
     return f"""SELECT
                    e.id as id,
                    e.name as name,
@@ -53,7 +52,7 @@ def _get_events_base_sql(select_param: LiteralString | None = None) -> LiteralSt
                    e.datetime as datetime
                FROM event e"""
 
-async def _get_eventlist_from_db(sql: LiteralString) -> Iterable[Event]:
+async def _get_eventlist_from_db(sql: str) -> Iterable[Event]:
     events_raw = await fetch_all(sql)
     return [
         Event(
@@ -69,7 +68,7 @@ async def _get_eventlist_from_db(sql: LiteralString) -> Iterable[Event]:
         for event in events_raw
     ]
 
-async def _get_event_from_db(sql: LiteralString) -> Event:
+async def _get_event_from_db(sql: str) -> Event:
     event = await fetch_one(sql)
     return Event(
         id=event["id"],

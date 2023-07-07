@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 import datetime
-from typing import LiteralString
 import enum
 
 from telegram import Update
@@ -157,7 +156,7 @@ async def get_user_by_id(telegram_id: int) -> User:
     return user
 
 
-def _get_users_base_sql(select_param: LiteralString | None = None) -> LiteralString:
+def _get_users_base_sql(select_param: str | None = None) -> str:
     return f"""SELECT
                    u.telegram_id as id,
                    u.name as name,
@@ -185,7 +184,7 @@ async def _get_userlist_from_db(sql):
     ]
 
 
-async def _get_user_from_db(sql: LiteralString) -> User:
+async def _get_user_from_db(sql: str) -> User:
     user = await fetch_one(sql)
     if user:
         return User(
