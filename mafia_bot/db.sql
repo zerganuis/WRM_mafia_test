@@ -55,3 +55,6 @@ create table statistic_edit(
     user_id int not null,
     event_id int not null
 );
+
+insert into event values
+(0, 'base_event', datetime('now', '-5 month'), 'base_place', 'base_cost', 'base_description', null, 0);
