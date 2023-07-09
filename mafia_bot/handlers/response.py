@@ -59,8 +59,8 @@ async def send_response_photo_group(
     if keyboard:
         args["reply_markup"] = keyboard
     args["media"] = [
-        InputMediaPhoto(media=open(config.INFO_PHOTOS_DIR.joinpath(f"{i}.jpg"), 'rb'), filename="photo")
-        for i in range(7)
+        InputMediaPhoto(media=open(picture, 'rb'), filename="photo") 
+        for picture in config.INFO_PICTURES
     ]
     await context.bot.send_media_group(**args)
 
