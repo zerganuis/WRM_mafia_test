@@ -18,7 +18,7 @@ INFO_PHOTOS_DIR = PHOTOS_DIR.joinpath("info")
 ROLE_PHOTOS_DIR = PHOTOS_DIR.joinpath("roles")
 EVENT_PHOTOS_DIR = PHOTOS_DIR.joinpath("events")
 EVENT_PICTURES = [EVENT_PHOTOS_DIR.joinpath(f"{i}.jpg") for i in range(9)]
-INFO_PICTURES = [INFO_PHOTOS_DIR.joinpath(f"{i}.jpg") for i in range(6)]
+INFO_PICTURES = [INFO_PHOTOS_DIR.joinpath(f"{i}.jpg") for i in range(7)]
 
 DATETIME_FORMAT = rf"%d.%m.%Y %H:%M"
 
