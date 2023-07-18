@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-pathvar = str(Path(__file__).resolve().parent.parent) + '\\'
+pathvar = str(Path(__file__).resolve().parent.parent) + '/'
 sys.path.append(pathvar)
 
 import logging

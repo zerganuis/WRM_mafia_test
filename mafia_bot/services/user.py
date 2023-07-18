@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 import datetime
-from typing import LiteralString
 import enum
 
 from telegram import Update
@@ -74,7 +73,7 @@ async def get_top_users(period: datetime.timedelta = 0, limit = config.TOP_PAGE_
                 from statistic s
                 {f'''LEFT JOIN event e ON e.id=s.event_id
                 WHERE
-                    e.datetime >  datetime(unixepoch() - unixepoch(datetime({period.total_seconds()}, 'unixepoch')), 'unixepoch')''' if period else " "}
+                    e.datetime >  (datetime('now') - datetime({period.total_seconds()}, 'unixepoch'))''' if period else " "}
                 group by s.user_id
             ) tt on tt.user_id = id
             order by total_score desc
@@ -94,7 +93,7 @@ async def get_user_statistic(user_id: int, period: datetime.timedelta = 0) -> di
             left join event e on e.id = s.event_id
             where
                 u.telegram_id = {user_id}
-                {f'''and e.datetime >  datetime(unixepoch() - unixepoch(datetime({period.total_seconds()}, 'unixepoch')), 'unixepoch')''' if period else " "}"""
+                {f'''and e.datetime >  (datetime('now') - datetime({period.total_seconds()}, 'unixepoch'))''' if period else " "}"""
     stats = await fetch_one(sql)
     if not stats["win_rate"]:
         stats["win_rate"] = 0
@@ -157,7 +156,7 @@ async def get_user_by_id(telegram_id: int) -> User:
     return user
 
 
-def _get_users_base_sql(select_param: LiteralString | None = None) -> LiteralString:
+def _get_users_base_sql(select_param: str | None = None) -> str:
     return f"""SELECT
                    u.telegram_id as id,
                    u.name as name,
@@ -185,7 +184,7 @@ async def _get_userlist_from_db(sql):
     ]
 
 
-async def _get_user_from_db(sql: LiteralString) -> User:
+async def _get_user_from_db(sql: str) -> User:
     user = await fetch_one(sql)
     if user:
         return User(

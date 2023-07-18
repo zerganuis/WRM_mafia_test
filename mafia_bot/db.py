@@ -1,6 +1,6 @@
 import asyncio
 from collections.abc import Iterable
-from typing import Any, LiteralString
+from typing import Any
 
 import aiosqlite
 
@@ -22,7 +22,7 @@ async def _async_close_db() -> None:
     await (await get_db()).close()
 
 
-async def fetch_all(sql: LiteralString, params: Iterable[Any] | None = None) -> list[dict]:
+async def fetch_all(sql: str, params: Iterable[Any] | None = None) -> list[dict]:
     cursor = await _get_cursor(sql, params)
     rows = await cursor.fetchall()
     results = []
@@ -31,7 +31,7 @@ async def fetch_all(sql: LiteralString, params: Iterable[Any] | None = None) -> 
     await cursor.close()
     return results
 
-async def fetch_one(sql: LiteralString, params: Iterable[Any] | None = None) -> dict | None:
+async def fetch_one(sql: str, params: Iterable[Any] | None = None) -> dict | None:
     cursor = await _get_cursor(sql, params)
     row_ = await cursor.fetchone()
     if not row_:
@@ -41,10 +41,10 @@ async def fetch_one(sql: LiteralString, params: Iterable[Any] | None = None) -> 
     return row
 
 async def _get_cursor(
-    sql: LiteralString, params: Iterable[Any] | None
+    sql: str, params: Iterable[Any] | None
 ) -> aiosqlite.Cursor:
     db = await get_db()
-    args: tuple[LiteralString, Iterable[Any] | None] = (sql, params)
+    args: tuple[str, Iterable[Any] | None] = (sql, params)
     cursor = await db.execute(*args)
     # await db.commit()
     db.row_factory = aiosqlite.Row
@@ -59,10 +59,10 @@ def _get_result_with_column_names(cursor: aiosqlite.Cursor, row: aiosqlite.Row) 
     return resulting_row
 
 async def execute(
-    sql: LiteralString, params: Iterable[Any] | None = None, *, autocommit: bool = True
+    sql: str, params: Iterable[Any] | None = None, *, autocommit: bool = True
 ) -> None:
     db = await get_db()
-    args: tuple[LiteralString, Iterable[Any] | None] = (sql, params)
+    args: tuple[str, Iterable[Any] | None] = (sql, params)
     await db.execute(*args)
     if autocommit:
         await db.commit()
