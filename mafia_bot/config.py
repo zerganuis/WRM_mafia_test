@@ -23,6 +23,7 @@ ROLE_PHOTOS_DIR = PHOTOS_DIR / "roles"
 EVENT_PHOTOS_DIR = PHOTOS_DIR / "events"
 BASE_EVENT_PHOTO = EVENT_PHOTOS_DIR / "base_event.jpg"
 
+
 # callback patterns
 
 EVENTS_CALLBACK_PATTERN = "e-list_"
