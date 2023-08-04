@@ -1,72 +1,43 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
-import random
 
 from mafia_bot import config
-from mafia_bot.db import fetch_all, fetch_one, execute
+from mafia_bot.db import fetch_one, execute
+
 
 @dataclass
 class Event:
     id: int
     name: str
     datetime: datetime
-    place: str
-    host_id: int
-    cost: str
-    description: str
-    picture_id: int
+    place: str = ''
+    cost: str = ''
+    description: str = ''
+    host_id: int | None = None
+    picture: str = config.BASE_EVENT_PHOTO
+    event_type: str | None = None
     userlist: Iterable | None = None
 
-Page = Iterable[Event]
 
-async def get_eventlist() -> Iterable[Page]:
-    sql = f"""{_get_events_base_sql()}
-              where e.datetime > datetime('now', '-1 day')
-              order by e.datetime"""
-    events = await _get_eventlist_from_db(sql)
-    return _group_events_by_pages(events)
+### Getting Event
 
-def _group_events_by_pages(events: Iterable[Event]) -> Iterable[Page]:
-    pagelen=config.EVENTLIST_PAGE_LENGTH
-    eventlist = []
-    for i in range(len(events) // pagelen + int(bool(len(events) % pagelen))):
-        eventlist.append([])
-        for j in range(pagelen):
-            event_index = i * pagelen + j
-            if event_index >= len(events):
-                break
-            eventlist[-1].append(events[event_index])
-    return eventlist
+def _event_base_sql(select_param: str | None = None) -> str:
+    return f"""
+        SELECT
+            {select_param + "," if select_param else ""}
+            event.id as id,
+            event.name as name,
+            event.datetime as datetime,
+            event.place as place,
+            event.cost as cost,
+            event.description as description,
+            event.host_id as host_id,
+            event.picture as picture,
+            event.type as event_type
+        FROM event
+    """
 
-def _get_events_base_sql(select_param: str | None = None) -> str:
-    return f"""SELECT
-                   e.id as id,
-                   e.name as name,
-                   e.place as place,
-                   e.host_id as host_id,
-                   e.cost as cost,
-                   e.description as description,
-                   e.picture_id as picture_id,
-                   {select_param + "," if select_param else ""}
-                   e.datetime as datetime
-               FROM event e"""
-
-async def _get_eventlist_from_db(sql: str) -> Iterable[Event]:
-    events_raw = await fetch_all(sql)
-    return [
-        Event(
-            id=event["id"],
-            name=event["name"],
-            place=event["place"],
-            datetime=datetime.strptime(event["datetime"], rf"%Y-%m-%d %H:%M:%S"),
-            host_id=event["host_id"],
-            cost=event["cost"],
-            description=event["description"],
-            picture_id=event["picture_id"]
-        )
-        for event in events_raw
-    ]
 
 async def _get_event_from_db(sql: str) -> Event:
     event = await fetch_one(sql)
@@ -78,9 +49,21 @@ async def _get_event_from_db(sql: str) -> Event:
         host_id=event["host_id"],
         cost=event["cost"],
         description=event["description"],
-        picture_id=event["picture_id"]
+        picture=event["picture"],
+        event_type=event["event_type"]
     )
 
+
+async def get_event_by_id(event_id: int) -> Event:
+    sql = f"""
+        {_event_base_sql()}
+        WHERE event.id = {event_id}
+    """
+    event = await _get_event_from_db(sql)
+    return event
+
+
+### Updating and Inserting Events' Data
 
 async def get_max_event_id() -> int:
     sql = f"""select max(id) as max_id from event"""
@@ -88,69 +71,72 @@ async def get_max_event_id() -> int:
     return response['max_id']
 
 
-async def get_event(event_id: int) -> Event:
-    sql = f"""{_get_events_base_sql()}
-              where e.id = {event_id}"""
-    event = await _get_event_from_db(sql)
-    return event
-
-
-async def update_event_parameter(param_name: str, param_value: str, event_id: int):
-    if param_name != 'datetime':
-        param_value = f"'{param_value}'"
-    sql = f"""UPDATE event
+async def update_event_parameter(event_id: int, param_name: str, param_value):
+    match param_name:
+        case 'name'|'place'|'cost'|'description'|'picture'|'event_type':
+            param_value = f"'{param_value}'"
+        case 'host_id':
+            param_value = str(param_value)
+        case 'datetime':
+            pass
+        case _:
+            raise ValueError(f"Invalid parameter name plased into update event function: {param_name}")
+    sql = f"""
+        UPDATE event
         SET {param_name} = {param_value}
-        where id = {event_id}
+        WHERE id = {event_id}
     """
     await execute(sql)
 
 
 async def insert_event_id(user_id: int, event_id: int):
-    sql_user = f"""INSERT INTO event values
-    ({event_id}, '', datetime('now'), '', '', '', null, {random.choice(range(len(config.EVENT_PICTURES)))})"""
-    sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
-    await execute(sql_user)
-    await execute(sql_user_reg)
-
-
-async def insert_edit_event_id(user_id: int, event_id: int):
-    sql_user_reg = f"""INSERT INTO event_registration values ({user_id}, {event_id})"""
-    await execute(sql_user_reg)
+    sql_event = f"""
+        INSERT INTO event VALUES
+        ({event_id}, '', datetime(0), '', '', '', null, '{config.BASE_EVENT_PHOTO}', '')
+    """
+    sql_event_edit = f"""INSERT INTO event_edit VALUES ({user_id}, {event_id})"""
+    await execute(sql_event)
+    await execute(sql_event_edit)
 
 
 async def delete_event(event_id: int):
-    sql_user = f"""DELETE from event where id = {event_id}"""
-    await execute(sql_user)
+    sql = f"""DELETE FROM event WHERE id = {event_id}"""
+    await execute(sql)
 
 
-async def delete_event_registration(event_id: int):
-    sql_user_reg = f"""DELETE from event_registration where event_id = {event_id}"""
-    await execute(sql_user_reg)
+async def delete_event_edit(event_id: int):
+    sql = f"""DELETE FROM event_edit WHERE event_id = {event_id}"""
+    await execute(sql)
+
+
+async def insert_event_edit(user_id: int, event_id: int):
+    sql = f"""INSERT INTO event_edit VALUES ({user_id}, {event_id})"""
+    await execute(sql)
 
 
 async def sign_up(user_id: int, event_id: int):
-    sql = f"""insert into statistic (user_id, event_id) values ({user_id}, {event_id})"""
+    sql = f"""INSERT INTO statistic (user_id, event_id) VALUES ({user_id}, {event_id})"""
     await execute(sql)
 
 
 async def sign_out(user_id: int, event_id: int):
-    sql = f"""delete from statistic where user_id = {user_id} and event_id = {event_id}"""
+    sql = f"""DELETE FROM statistic WHERE user_id = {user_id} AND event_id = {event_id}"""
     await execute(sql)
 
 
 async def is_signed_up(user_id: int, event_id: int) -> bool:
-    sql = f"""select * from statistic where user_id = {user_id} and event_id = {event_id}"""
+    sql = f"""SELECT * FROM statistic WHERE user_id = {user_id} AND event_id = {event_id}"""
     res = await fetch_one(sql)
     return bool(res)
 
 
-async def get_reg_event_id(user_id: int) -> int:
-    sql = f"""select event_id from event_registration where user_id = {user_id}"""
+async def get_edit_event_id(user_id: int) -> int:
+    sql = f"""SELECT event_id FROM event_edit WHERE editor_id = {user_id}"""
     response = await fetch_one(sql)
     return response['event_id']
 
 
-def format_datetime(text: str) -> str:
+def format_datetime_to_db(text: str) -> str:
     dt = datetime.strptime(text, config.DATETIME_FORMAT)
     dt_to_sql = dt.strftime(rf"%Y-%m-%d %H:%M:%S")
     return dt_to_sql

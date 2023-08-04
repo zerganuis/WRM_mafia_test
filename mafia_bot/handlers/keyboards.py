@@ -310,7 +310,7 @@ def get_ruletype_keyboard(
     return InlineKeyboardMarkup(keyboard)
 
 
-def get_role_keyboard(callback_prefix: str):
+def get_back_keyboard(callback_prefix: str):
     keyboard = [
         [InlineKeyboardButton(
             "< Назад", callback_data=f"{callback_prefix}"
