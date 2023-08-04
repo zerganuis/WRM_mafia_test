@@ -1,0 +1,35 @@
+{
+    "all_roles": {
+        "classicmafia": {
+            "mafia": "Мафия",
+            "peaceful": "Мирный житель",
+            "commissar": "Комиссар",
+            "don": "Дон"
+        },
+        "citymafia": {
+            "mafia": "Мафия",
+            "peaceful": "Мирный житель",
+            "commissar": "Комиссар",
+            "maniac": "Маньяк",
+            "doctor": "Доктор",
+            "model": "Модель"
+        },
+        "rolemafia": {
+            "mafia": "Мафия",
+            "peaceful": "Мирный житель",
+            "commissar": "Комиссар",
+            "maniac": "Маньяк",
+            "doctor": "Доктор",
+            "model": "Модель",
+            "jailer": "Тюремщик",
+            "sapper": "Сапер",
+            "bodyguard": "Телохранитель",
+            "double": "Двойник"
+        }
+    },
+    "all_rules": {
+        "classicmafia": "Классическая (спортивная) мафия",
+        "citymafia": "Городская мафия",
+        "rolemafia": "Ролевая мафия"
+    }
+}

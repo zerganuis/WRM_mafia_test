@@ -1,0 +1,26 @@
+<b>Игрок</b>
+<br><br>
+Имя: {{ user.name }}<br>
+Игровое имя: {{ user.nickname }}<br>
+{% if user.city.strip() %}
+Город: {{ user.city }}<br>
+{% endif %}
+{% if user.birthday %}
+День рождения: {{ user.birthday.strftime("%d.%m") }}<br>
+{% endif %}
+<br>
+
+{% for stat in stat_periods %}
+{% if loop.first %}
+Статистика за месяц:<br>
+{% else %}
+Статистика за сезон:<br>
+{% endif %}
+
+Баллы: {{ stat['total_score'] }} <br>
+Сыграно игр: {{ stat['game_count'] }} <br>
+Побед: {{ stat['win_count'] }} <br>
+Процент побед: {{ stat['win_rate']|round }}%<br>
+<br>
+
+{% endfor %}

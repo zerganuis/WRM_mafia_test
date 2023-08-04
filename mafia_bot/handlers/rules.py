@@ -3,75 +3,39 @@ from telegram import Update, InputMediaPhoto
 from telegram.ext import ContextTypes
 
 from mafia_bot import config
-from mafia_bot.handlers.response import send_response, send_response_photo
-from mafia_bot.handlers.keyboards import get_rules_keyboard, get_role_keyboard, get_ruletype_keyboard
+from mafia_bot.handlers.menu import get_id, get_prev_callback
+from mafia_bot.handlers.response import send_photos_response
+from mafia_bot.handlers.keyboards import get_rules_keyboard, get_back_keyboard, get_ruletype_keyboard
 from mafia_bot.templates import render_template
 
-template_prefix = "rules/"
 
-_all_roletypes = {
-    "classic": "Классическая (спортивная) мафия",
-    "city": "Городская мафия",
-    "role": "Ролевая мафия"
-}
-
-_all_roles = {
-    "classic": {
-        "mafia": "Мафия",
-        "peaceful": "Мирный житель",
-        "comissar": "Комиссар",
-        "don": "Дон"
-    },
-    "city": {
-        "mafia": "Мафия",
-        "peaceful": "Мирный житель",
-        "comissar": "Комиссар",
-        "maniac": "Маньяк",
-        "doctor": "Доктор",
-        "model": "Модель"
-    },
-    "role": {
-        "mafia": "Мафия",
-        "peaceful": "Мирный житель",
-        "comissar": "Комиссар",
-        "maniac": "Маньяк",
-        "doctor": "Доктор",
-        "model": "Модель",
-        "jailer": "Тюремщик",
-        "sapper": "Сапер",
-        "bodyguard": "Телохранитель",
-        "double": "Двойник"
-    }
-}
-
-
-async def rules(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def cmd_rulelist(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message:
         return
-    await send_response_photo(
+    await send_photos_response(
         update,
         context,
-        render_template(
-            f"{template_prefix}rules_menu.j2"
+        caption=render_template(
+            f"{config.RULES_TEMPLATES_DIR}rulelist_menu.j2"
         ),
-        get_rules_keyboard(
-            _all_roletypes,
+        keyboard=get_rules_keyboard(
+            config.ALL_RULES,
             f"{config.RULETYPE_CALLBACK_PATTERN}"
         )
     )
 
 
-async def rules_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def rulelist_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     if not query.data or not query.data.strip():
         return
     await query.edit_message_caption(
         caption=render_template(
-            f"{template_prefix}rules_menu.j2"
+            f"{config.RULES_TEMPLATES_DIR}rulelist_menu.j2"
         ),
         reply_markup=get_rules_keyboard(
-            _all_roletypes,
+            config.ALL_RULES,
             f"{config.RULETYPE_CALLBACK_PATTERN}"
         ),
         parse_mode=telegram.constants.ParseMode.HTML,
@@ -83,36 +47,23 @@ async def ruletype_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     if not query.data or not query.data.strip():
         return
-    ruletype = _get_ruletype(query.data)
+    ruletype = get_id(query.data)
     await query.edit_message_media(
         InputMediaPhoto(
             media=open(config.BASE_PHOTO, 'rb'),
             caption=render_template(
-                f"{template_prefix}{ruletype}_rules.j2"
+                f"{config.RULES_TEMPLATES_DIR}{ruletype}_rules.j2"
             ),
             parse_mode=telegram.constants.ParseMode.HTML,
         ),
         reply_markup=get_ruletype_keyboard(
-            _all_roles[ruletype],
+            config.ALL_ROLES[ruletype],
             {
                 "role": f"{config.ROLE_CALLBACK_PATTERN}{query.data}_",
-                "back": f"{config.RULES_CALLBACK_PATTERN}0"
+                "back": f"{config.RULELIST_CALLBACK_PATTERN}{0}"
             }
         )
     )
-    # await query.edit_message_caption(
-    #     caption=render_template(
-    #         f"{template_prefix}{ruletype}_rules.j2"
-    #     ),
-    #     reply_markup=get_ruletype_keyboard(
-    #         _all_roles[ruletype],
-    #         {
-    #             "role": f"{config.ROLE_CALLBACK_PATTERN}{query.data}_",
-    #             "back": f"{config.RULES_CALLBACK_PATTERN}0"
-    #         }
-    #     ),
-    #     parse_mode=telegram.constants.ParseMode.HTML,
-    # )
 
 
 async def role_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -120,44 +71,17 @@ async def role_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     if not query.data or not query.data.strip():
         return
-    role = _get_role(query.data)
-    prev_callback = _get_prev_callback(query.data, config.ROLE_CALLBACK_PATTERN)
+    role = get_id(query.data)
+    prev_callback = get_prev_callback(query.data)
     await query.edit_message_media(
         InputMediaPhoto(
             media=open(config.ROLE_PHOTOS_DIR.joinpath(f"{role}.jpg"), 'rb'),
             caption=render_template(
-                f"{template_prefix}{role}.j2"
+                f"{config.RULES_TEMPLATES_DIR}{role}.j2"
             ),
             parse_mode=telegram.constants.ParseMode.HTML,
         ),
-        reply_markup=get_role_keyboard(
+        reply_markup=get_back_keyboard(
             f"{prev_callback}"
         )
     )
-    # await query.edit_message_caption(
-    #     caption=render_template(
-    #         f"{template_prefix}{role}.j2"
-    #     ),
-    #     reply_markup=get_role_keyboard(
-    #         f"{prev_callback}"
-    #     ),
-    #     parse_mode=telegram.constants.ParseMode.HTML,
-    # )
-
-
-def _get_role(query_data: str) -> str:
-    pattern_prefix_length = query_data.rfind("_") + 1
-    role = query_data[pattern_prefix_length:]
-    return role
-
-
-def _get_ruletype(query_data) -> str:
-    pattern_prefix_length = len(config.RULETYPE_CALLBACK_PATTERN)
-    period = query_data[pattern_prefix_length:]
-    return period
-
-
-def _get_prev_callback(query_data, current_callback) -> str:
-    pattern_prefix_length = len(current_callback)
-    pattern_postfix_length = query_data.rfind("_")
-    return query_data[pattern_prefix_length:pattern_postfix_length]
