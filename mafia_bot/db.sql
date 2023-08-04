@@ -20,7 +20,7 @@ create table event(
     cost text not null,
     description text not null,
     host_id bigint,
-    picture_id int not null,
+    picture text default null,
     type varchar(64) not null,
     foreign key (host_id) references user(telegram_id) ON DELETE SET null
 );

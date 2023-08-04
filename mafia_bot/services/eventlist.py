@@ -8,7 +8,8 @@ from mafia_bot.services.lists import group_by_pages
 
 
 async def get_eventlist(
-        period: timedelta | None = None
+        period: timedelta | None = None,
+        isDescendingOrder: bool = False
 ) -> Iterable[Iterable[Event]]:
     """period - переменная, показывающая, насколько в прошлое от текущего времени нужно заглянуть"""
     sql = f"""
@@ -16,9 +17,9 @@ async def get_eventlist(
         WHERE
             event.datetime > {
                 f"datetime('now', '-{period.total_seconds()} seconds')"
-                    if period else "0"
+                    if not period is None else "0"
             }
-        ORDER BY event.datetime
+        ORDER BY event.datetime {'DESC' if isDescendingOrder else ''}
     """
     events = await _get_eventlist_from_db(sql)
     return group_by_pages(events, config.EVENTLIST_PAGE_LENGTH)

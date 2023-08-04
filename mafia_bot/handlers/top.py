@@ -59,7 +59,7 @@ async def top_submenu_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
             media=open(config.BASE_PHOTO, 'rb'),
             caption=render_template(
                 "top_submenu.j2",
-                {"period": config.TOP_PERIODS_JSON[period].lower()}
+                {"period": config.TOP_PERIODS_JSON[str(period)].lower()}
             ),
             parse_mode=telegram.constants.ParseMode.HTML,
         ),
@@ -67,7 +67,7 @@ async def top_submenu_button(update: Update, context: ContextTypes.DEFAULT_TYPE)
             page=userlist[0],
             callback_prefix={
                 "element_list": config.TOP_SUBMENU_CALLBACK_PATTERN,
-                "element": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
+                "element": f"{config.USER_PROFILE_CALLBACK_PATTERN}{query.data}_",
                 "back": f"{config.TOP_MENU_CALLBACK_PATTERN}0"
             },
             page_count=len(userlist),

@@ -1,6 +1,6 @@
 from typing import LiteralString
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import timedelta, datetime
 
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -100,6 +100,7 @@ def _get_user_base_sql(select_param: str | None = None) -> LiteralString:
             user.nickname as nickname,
             user.city as city,
             user.hasPhoto as hasPhoto,
+            user.birthday as birthday,
             {select_param + "," if select_param else ""}
             user.access_level as access_level
         FROM user
@@ -119,13 +120,17 @@ async def _get_user_from_db(sql: str) -> User | None:
     user = await fetch_one(sql)
     if not user:
         return None
+    if user["birthday"]:
+        birthday = datetime.strptime(f"{user['birthday']}", rf"%Y-%m-%d")
+    else:
+        birthday = None
     return User(
             id=user["id"],
             name=user["name"],
             nickname=user["nickname"],
             city=user["city"],
             hasPhoto=user["hasPhoto"],
-            birthday=user["birthday"],
+            birthday=birthday,
             access_level=get_access_level(user["access_level"]),
         )
 

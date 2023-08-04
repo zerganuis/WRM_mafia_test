@@ -53,7 +53,6 @@ async def send_photos_response(
     
     if args.get("media", None):
         if len(args["media"]) > 1:
-            args.pop("reply_markup")
             await context.bot.send_media_group(**args)
         else:
             args["photo"] = args.pop("media")[0].media

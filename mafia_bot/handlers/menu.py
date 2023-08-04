@@ -12,7 +12,7 @@ def get_menu(query_data: str) -> list:
     menu_depth = len(data) // 2
     menu = []
     for i in range(menu_depth):
-        menu.append( ( data[i] + "_", data[-(i + 1)] ) )
+        menu.append(f"{data[i]}_{data[-(i + 1)]}")
     return menu
 
 

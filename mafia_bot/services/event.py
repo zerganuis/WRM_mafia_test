@@ -41,6 +41,14 @@ def _event_base_sql(select_param: str | None = None) -> str:
 
 async def _get_event_from_db(sql: str) -> Event:
     event = await fetch_one(sql)
+    if event.get("picture", None):
+        picture = event["picture"]
+        try:
+            open(event["picture"], 'rb')
+        except Exception:
+            picture = config.BASE_EVENT_PHOTO
+    else:
+        picture = config.BASE_EVENT_PHOTO
     return Event(
         id=event["id"],
         name=event["name"],
@@ -49,7 +57,7 @@ async def _get_event_from_db(sql: str) -> Event:
         host_id=event["host_id"],
         cost=event["cost"],
         description=event["description"],
-        picture=event["picture"],
+        picture=picture,
         event_type=event["event_type"]
     )
 
@@ -73,7 +81,7 @@ async def get_max_event_id() -> int:
 
 async def update_event_parameter(event_id: int, param_name: str, param_value):
     match param_name:
-        case 'name'|'place'|'cost'|'description'|'picture'|'event_type':
+        case 'name'|'place'|'cost'|'description'|'picture'|'type':
             param_value = f"'{param_value}'"
         case 'host_id':
             param_value = str(param_value)

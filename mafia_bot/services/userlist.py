@@ -1,9 +1,10 @@
 from collections.abc import Iterable
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from mafia_bot import config
 from mafia_bot.db import fetch_all
 from mafia_bot.services.user import User
+from mafia_bot.services.access import get_access_level
 from mafia_bot.services.lists import group_by_pages
 
 
@@ -43,7 +44,9 @@ async def _get_userlist_from_db(sql: str) -> Iterable[User]:
             id=user["id"],
             name=user["name"],
             nickname=user["nickname"],
-            total_score=user["total_score"]
+            total_score=user.get("total_score", None),
+            access_level=get_access_level(user["access_level"]),
+            birthday=datetime.strptime(f"{user['birthday']}", rf"%Y-%m-%d") if user["birthday"] else None
         )
         for user in userlist_raw
     ]
@@ -55,11 +58,13 @@ def _userlist_base_sql(select_param: str | None = None) -> str:
             {select_param + "," if select_param else ""}
             user.telegram_id as id,
             user.name as name,
-            user.nickname as nickname
+            user.nickname as nickname,
+            user.access_level as access_level,
+            user.birthday as birthday
         FROM user"""
 
 
-async def get_event_participants(event_id: int) -> Iterable[User]:
+async def get_event_participants(event_id: int) -> Iterable[Iterable[User]]:
     base_sql = _userlist_base_sql()
     cut = base_sql.find("FROM")
     sql = f"""
@@ -68,4 +73,4 @@ async def get_event_participants(event_id: int) -> Iterable[User]:
         LEFT JOIN user ON user.telegram_id = statistic.user_id
         WHERE statistic.event_id = {event_id}"""
     userlist = await _get_userlist_from_db(sql)
-    return userlist
+    return group_by_pages(userlist, config.USERLIST_PAGE_LENGTH)

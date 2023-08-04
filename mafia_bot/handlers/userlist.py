@@ -24,8 +24,8 @@ async def cmd_userlist(update: Update, context: ContextTypes.DEFAULT_TYPE, acces
         get_element_list_keyboard(
             userlist[0],
             callback_prefix={
-                "element_list": config.FULL_USERLIST_CALLBACK_PATTERN,
-                "element": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{config.FULL_USERLIST_CALLBACK_PATTERN}0_0"
+                "element_list": config.USERLIST_CALLBACK_PATTERN,
+                "element": f"{config.USER_PROFILE_CALLBACK_PATTERN}{config.USERLIST_CALLBACK_PATTERN}0_"
             },
             page_count=len(userlist),
             current_page_index=0,
@@ -50,8 +50,8 @@ async def userlist_page_button(update: Update, context: ContextTypes.DEFAULT_TYP
         reply_markup=get_element_list_keyboard(
             userlist[current_page_index],
             callback_prefix={
-                "element_list": config.FULL_USERLIST_CALLBACK_PATTERN,
-                "element": f"{config.VIEW_USER_PROFILE_CALLBACK_PATTERN}{config.FULL_USERLIST_CALLBACK_PATTERN}0_0"
+                "element_list": config.USERLIST_CALLBACK_PATTERN,
+                "element": f"{config.USER_PROFILE_CALLBACK_PATTERN}{config.USERLIST_CALLBACK_PATTERN}0_0"
             },
             page_count=len(userlist),
             current_page_index=current_page_index,
