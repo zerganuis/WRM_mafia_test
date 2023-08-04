@@ -49,7 +49,8 @@ EVENT_PHOTOS_CALLBACK_PATTERN = "e-photos_"
 DELETE_PHOTO_CALLBACK_PATTERN = "deletephoto_"
 SUBMIT_DELETE_PHOTO_CALLBACK_PATTERN = "submitdeletephoto_"
 ADD_PHOTO_CALLBACK_PATTERN = "addphoto_"
-REG_EVENT_TYPE_CALLBACK_PATTERN = "regeventtype_"
+REG_EVENT_TYPE_CALLBACK_PATTERN = "rege-type_"
+EDIT_EVENT_TYPE_CALLBACK_PATTERN = "edite-type_"
 
 ### пока не используется, заготовка под заказ ведущего
 HOST_PROFILE_CALLBACK_PATTERN = "hostprofile_"

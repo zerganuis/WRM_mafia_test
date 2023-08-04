@@ -83,10 +83,11 @@ def main():
 
     for pattern, handler in CALLBACK_QUERY_HANDLERS.items():
         application.add_handler(CallbackQueryHandler(handler, pattern=pattern))
-    soon = (datetime.datetime.now() + timedelta(seconds=30) - timedelta(hours=3)).time()
+    # soon = (datetime.datetime.now() + timedelta(seconds=30) - timedelta(hours=3)).time()
+    # soon1 = (datetime.datetime.now() + timedelta(seconds=45) - timedelta(hours=3)).time()
     # application.job_queue.run_daily(handlers.event_notification, time=time(12, 33)) # нужно указывать время по гринвичу (нужно настроить)
-    application.job_queue.run_daily(handlers.event_notification, time=soon)
-    application.job_queue.run_daily(handlers.birthday_notification, time=soon)
+    application.job_queue.run_daily(handlers.event_notification, time=time(9, 0)) # 12:00 по нашему
+    application.job_queue.run_daily(handlers.birthday_notification, time=time(10, 0)) # 13:00 по нашему
     application.run_polling()
 
 if __name__ == '__main__':

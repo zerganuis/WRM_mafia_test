@@ -15,7 +15,8 @@ from mafia_bot.handlers.response import send_text_response, send_photos_response
 from mafia_bot.handlers.keyboards import (
     get_event_profile_keyboard,
     get_edit_event_profile_keyboard,
-    get_element_list_keyboard
+    get_element_list_keyboard,
+    get_delete_photo_type_keyboard
 )
 from mafia_bot.templates import render_template
 from mafia_bot.services.event import (
@@ -234,7 +235,7 @@ async def edit_event_profile_button(update: Update, context: ContextTypes.DEFAUL
         'cost': 'Стоимость',
         'description': 'Описание',
         'photo': 'Фото',
-        'type': 'Вид'
+        'type': 'Тип'
     }
     await query.edit_message_caption(
         caption=render_template(
@@ -262,7 +263,18 @@ async def edit_event_parameter_start_button(update: Update, context: ContextType
     await insert_event_edit(user_id, event_id)
     param_name = get_prev_callback(query.data)
     if param_name == 'photo':
-        await edit_event_photo(update, context)
+        hasPhotos = await edit_event_photo(update, context)
+        return param_name if hasPhotos else ConversationHandler.END
+    elif param_name == 'type':
+        await query.edit_message_caption(
+            caption="Выберите тип мероприятия:",
+            reply_markup=get_delete_photo_type_keyboard({
+                "Мафия": f"{config.EDIT_EVENT_TYPE_CALLBACK_PATTERN}mafia_0",
+                "Денежный поток": f"{config.EDIT_EVENT_TYPE_CALLBACK_PATTERN}flow_0",
+                "Бункер": f"{config.EDIT_EVENT_TYPE_CALLBACK_PATTERN}bunker_0"
+            }),
+            parse_mode=telegram.constants.ParseMode.HTML,
+        )
         return param_name
     template = "edit_parameter_base.j2"
     if param_name == "datetime":
@@ -309,6 +321,9 @@ async def edit_event_parameter(update: Update, context: ContextTypes.DEFAULT_TYP
         photolist = [photo.name for photo in photo_path.iterdir() if photo.is_file()]
         photo_id = get_id(query.data)
         param_value = config.EVENT_PHOTOS_DIR / event.event_type / f"{photolist[photo_id]}"
+    elif param_name == 'type':
+        query = update.callback_query
+        param_value = get_prev_callback(query.data)
     else:
         param_value = update.message.text
     await update_event_parameter(event_id, param_name, param_value)
@@ -369,10 +384,13 @@ def get_edit_event_conversation() -> ConversationHandler:
     return ConversationHandler(
         entry_points=[CallbackQueryHandler(edit_event_parameter_start_button, pattern=pattern)],
         states={
-            "type": [MessageHandler(
-                filters.TEXT & ~filters.COMMAND,
-                _edit_event_type
-                )],
+            "type": [
+                CallbackQueryHandler(
+                    _edit_event_type,
+                    pattern=rf"^{config.EDIT_EVENT_TYPE_CALLBACK_PATTERN}(.+)$"
+                )
+                # MessageHandler(filters.TEXT & ~filters.COMMAND, _edit_event_type)
+                ],
             "name": [MessageHandler(
                 filters.TEXT & ~filters.COMMAND,
                 _edit_event_name

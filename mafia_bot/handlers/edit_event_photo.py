@@ -39,7 +39,7 @@ async def reg_event_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
-async def edit_event_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def edit_event_photo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     query = update.callback_query
     event_id = get_id(query.data)
     event = await get_event_by_id(event_id)
@@ -61,12 +61,14 @@ async def edit_event_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 }
             )
         )
+        return True
     else:
         await send_text_response(
             update,
             context,
             "Список фотографий пуст"
         )
+        return False
 
 
 async def edit_event_photo_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
