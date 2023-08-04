@@ -1,4 +1,3 @@
-from typing import LiteralString
 from dataclasses import dataclass
 from datetime import timedelta, datetime
 
@@ -92,7 +91,7 @@ async def get_user_statistic(user_id: int, period: timedelta = 0) -> dict:
     return stats
 
 
-def _get_user_base_sql(select_param: str | None = None) -> LiteralString:
+def _get_user_base_sql(select_param: str | None = None) -> str:
     return f"""
         SELECT
             user.telegram_id as id,
