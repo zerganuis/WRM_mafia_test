@@ -6,6 +6,7 @@ from telegram.ext import ContextTypes
 
 from mafia_bot.services.userlist import get_userlist
 from mafia_bot.services.user import get_constant_admin_list, AccessLevel
+from mafia_bot.templates import render_template
 
 
 async def birthday_notification(context: ContextTypes.DEFAULT_TYPE):
@@ -28,7 +29,13 @@ async def birthday_notification(context: ContextTypes.DEFAULT_TYPE):
                     now < \
                     datetime(now.year, user.birthday.month, user.birthday.day) <= \
                     now + timedelta(days=7):
-                args["text"] = f"{user.name} has birthday soon"
+                args["text"] = render_template(
+                    "birthday_notification.j2",
+                    {
+                        "user": user,
+                        "user_birthday": user.birthday.strftime(rf"%d.%m")
+                    }
+                )
                 for admin in adminlist:
                     args["chat_id"] = admin
                     await context.bot.send_message(**args)

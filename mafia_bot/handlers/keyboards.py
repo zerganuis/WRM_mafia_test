@@ -324,7 +324,7 @@ def get_userlist_keyboard(
 
 def get_rules_keyboard(
         ruletypes: dict,
-        callback_prefix: str
+        callback_prefix: dict
 ) -> InlineKeyboardMarkup:
     keyboard = []
     rolelist = list(ruletypes.items())
@@ -333,7 +333,13 @@ def get_rules_keyboard(
         keyboard.append(
             [InlineKeyboardButton(
                 f"{value}",
-                callback_data=f"{callback_prefix}{key}"
+                callback_data=f"{callback_prefix['rule']}{key}"
+            )]
+        )
+    if callback_prefix.get("back", None):
+        keyboard.append(
+            [InlineKeyboardButton(
+                "< Назад", callback_data=f"{callback_prefix['back']}"
             )]
         )
     return InlineKeyboardMarkup(keyboard)

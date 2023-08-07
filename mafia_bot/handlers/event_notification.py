@@ -7,8 +7,22 @@ from telegram.ext import ContextTypes
 
 from mafia_bot.services.eventlist import get_eventlist
 from mafia_bot.services.userlist import get_event_participants
+from mafia_bot.templates import render_template
 
 from pprint import pprint
+
+
+def get_event_type_name(event_type):
+    match event_type:
+        case "mafia":
+            return "Мафия"
+        case "flow":
+            return "CashFlow"
+        case "bunker":
+            return "Бункер"
+        case _:
+            raise ValueError( f"Invalid event type: {event_type}" )
+
 
 async def event_notification(context: ContextTypes.DEFAULT_TYPE):
     period = timedelta(0)
@@ -17,16 +31,19 @@ async def event_notification(context: ContextTypes.DEFAULT_TYPE):
         "parse_mode": telegram.constants.ParseMode.HTML,
     }
     actual_events = await get_eventlist(period)
-    pprint(actual_events)
-    print()
     for page in actual_events:
         for event in page:
-            args["text"] = event.name
+            args["text"] = render_template(
+                "event_notification.j2",
+                {
+                    "event": event,
+                    "event_type": get_event_type_name(event.event_type),
+                    "event_date": event.datetime.date().strftime(rf"%d.%m"),
+                    "event_time": event.datetime.time().strftime(rf"%H.%M")
+                }
+            )
             userlist = await get_event_participants(event.id)
-            pprint(event.name)
-            pprint(userlist)
             for userpage in userlist:
                 for user in userpage:
                     args["chat_id"] = user.id
-                    pprint(user.id)
                     await context.bot.send_message(**args)

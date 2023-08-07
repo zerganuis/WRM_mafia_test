@@ -32,7 +32,8 @@ from .rules import (
     cmd_rulelist,
     rulelist_button,
     ruletype_button,
-    role_button
+    role_button,
+    gamelist_button
 )
 from .reg import (
     cmd_reg,
