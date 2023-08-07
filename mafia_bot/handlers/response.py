@@ -41,6 +41,7 @@ async def send_photos_response(
         args["reply_markup"] = keyboard
     if path_to_photos.is_dir():
         files_in_dir = [filepath for filepath in path_to_photos.iterdir()]
+        files_in_dir.sort(key=lambda filepath: filepath.name)
         if len(files_in_dir) > 0:
             args["media"] = [
                 InputMediaPhoto(media=open(picture, 'rb'), filename="photo")
