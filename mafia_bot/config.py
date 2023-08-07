@@ -52,6 +52,7 @@ SUBMIT_DELETE_PHOTO_CALLBACK_PATTERN = "submitdeletephoto_"
 ADD_PHOTO_CALLBACK_PATTERN = "addphoto_"
 REG_EVENT_TYPE_CALLBACK_PATTERN = "rege-type_"
 EDIT_EVENT_TYPE_CALLBACK_PATTERN = "edite-type_"
+GAMETYPE_CALLBACK_PATTERN = "gametype_"
 
 ### пока не используется, заготовка под заказ ведущего
 HOST_PROFILE_CALLBACK_PATTERN = "hostprofile_"
@@ -66,6 +67,7 @@ DATETIME_FORMAT = rf"%d.%m.%Y %H:%M"
 RULES_JSON = json.load(open(BASE_DIR / "rules.json", encoding='UTF-8'))
 ALL_ROLES = RULES_JSON['all_roles']
 ALL_RULES = RULES_JSON['all_rules']
+ALL_GAMETYPES = RULES_JSON['all_gametypes']
 TOP_PERIODS_JSON = json.load(open(BASE_DIR / "top_periods.json", encoding='UTF-8'))
 RULES_TEMPLATES_DIR = 'rules/'
 REG_TEMPLATES_DIR = 'reg/'

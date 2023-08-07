@@ -28,8 +28,17 @@
         }
     },
     "all_rules": {
-        "classicmafia": "Классическая (спортивная) мафия",
-        "citymafia": "Городская мафия",
-        "rolemafia": "Ролевая мафия"
+        "mafia": {
+            "classicmafia": "Классическая (спортивная) мафия",
+            "citymafia": "Городская мафия",
+            "rolemafia": "Ролевая мафия"
+        },
+        "cashflow": {},
+        "bunker": {}
+    },
+    "all_gametypes": {
+        "mafia": "Мафия",
+        "cashflow": "CashFlow",
+        "bunker": "Бункер"
     }
 }

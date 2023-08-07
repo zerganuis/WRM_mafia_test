@@ -31,7 +31,9 @@ async def _get_eventlist_from_db(sql: str) -> Iterable[Event]:
         Event(
             id=event["id"],
             name=event["name"],
-            datetime=datetime.strptime(event["datetime"], rf"%Y-%m-%d %H:%M:%S")
+            datetime=datetime.strptime(event["datetime"], rf"%Y-%m-%d %H:%M:%S"),
+            event_type=event["event_type"],
+            place=event["place"]
         )
         for event in events_raw
     ]
@@ -43,6 +45,8 @@ def _eventlist_base_sql(select_param: str | None = None) -> str:
             {select_param + "," if select_param else ""}
             event.id as id,
             event.name as name,
-            event.datetime as datetime
+            event.datetime as datetime,
+            event.type as event_type,
+            event.place as place
         FROM event
     """
