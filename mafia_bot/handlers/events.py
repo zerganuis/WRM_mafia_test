@@ -45,6 +45,13 @@ async def cmd_events(update: Update, context: ContextTypes.DEFAULT_TYPE, access_
         return
     period = timedelta(0)
     eventlist = await get_eventlist(period)
+    if not eventlist:
+        await send_text_response(
+            update,
+            context,
+            "На данный момент не запланированно никаких мероприятий в будущем"
+        )
+        return
     await send_photos_response(
         update,
         context,
