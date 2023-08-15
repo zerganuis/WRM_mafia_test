@@ -62,9 +62,9 @@ from .add_event_photo import (
     cmd_addphoto,
     add_event_photo_conversation
 )
-from .event_notification import (
+from .event_notification_handler import (
     event_notification
 )
-from .birthday_notification import (
+from .birthday_notification_handler import (
     birthday_notification
 )
